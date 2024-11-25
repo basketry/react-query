@@ -402,15 +402,18 @@ export class HookFile extends ModuleBuilder {
 
     let couldHaveNullQueryParams = false;
     if (queryParams?.length) {
-      couldHaveNullQueryParams = queryParams.every((hp) => {
-        const param = method.parameters.find(
-          (p) => camel(p.name.value) === camel(hp.name.value),
-        );
-        return param ? !isRequired(param) : true;
-      });
+      couldHaveNullQueryParams = true;
       queryKey.push(
         `${compact()}({${queryParams
-          .map((p) => `${p.name.value}: params${q}.${p.name.value}`)
+          .map((p) => {
+            const param = method.parameters.find(
+              (mp) => camel(mp.name.value) === camel(p.name.value),
+            );
+            const isArray = param?.isArray ?? false;
+            return `${p.name.value}: params${q}.${p.name.value}${
+              isArray ? ".join(',')" : ''
+            }`;
+          })
           .join(',')}})`,
       );
     }
