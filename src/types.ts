@@ -7,6 +7,7 @@ export type ReactQueryOptions = {
   includeVersion?: boolean;
   typesModule?: string;
   clientModule?: string;
+  reactImport?: boolean;
 };
 
 export type NamespacedReactQueryOptions = NamespacedBasketryOptions & {

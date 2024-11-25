@@ -3,7 +3,10 @@ import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
 
 export class ContextFile extends ModuleBuilder {
-  private readonly react = new ImportBuilder('react', 'React');
+  private readonly react = new ImportBuilder(
+    'react',
+    this.options?.reactQuery?.reactImport ? 'React' : undefined,
+  );
   private readonly client = new ImportBuilder(
     this.options?.reactQuery?.clientModule ?? '../http-client',
   );
