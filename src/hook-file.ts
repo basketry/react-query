@@ -176,7 +176,9 @@ export class HookFile extends ModuleBuilder {
 
         const optionsExpression = `options?: Omit<${UseMutationOptions()}<${type(
           typeName,
-        )}, Error, ${type(paramsType)}, unknown>, 'mutationFn'>`;
+        )}, Error, ${
+          method.parameters.length ? type(paramsType) : 'never'
+        }, unknown>, 'mutationFn'>`;
 
         yield* buildDescription(
           method.description,
