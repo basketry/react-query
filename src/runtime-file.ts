@@ -12,10 +12,12 @@ export class RuntimeFile extends ModuleBuilder {
 
       export type PageParam = { pageParam?: string };
     
-      export class CompositeError extends Error {
-        constructor(readonly errors: { title: string }[]) {
-          super(errors.map((e) => e.title).join(', '));
-          if (Error.captureStackTrace) Error.captureStackTrace(this, CompositeError);
+      export async function guard<T>(fn: Promise<T>): Promise<T> {
+        try {
+          return await fn;
+        } catch (payload) {
+          console.error(payload);
+          throw { kind: 'unhandled', payload };
         }
       }
       
