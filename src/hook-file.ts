@@ -69,6 +69,17 @@ export class HookFile extends ModuleBuilder {
     const serviceName = camel(`${this.int.name.value}_service`);
     const serviceHookName = camel(`use_${this.int.name.value}_service`);
 
+    yield `export type ThrowableError =
+      | {
+          kind: 'handled';
+          payload: ${type('Error')}[];
+        }
+      | {
+          kind: 'unhandled';
+          payload: globalThis.Error;
+        };`;
+    yield '';
+
     for (const method of [...this.int.methods].sort((a, b) =>
       this.getHookName(a).localeCompare(this.getHookName(b)),
     )) {
@@ -124,15 +135,12 @@ export class HookFile extends ModuleBuilder {
         const queryParams = httpMethod?.parameters.filter((p) =>
           isCacheParam(p, true),
         );
-        const queryParamsType = queryParams.length
-          ? 'string | Record<string, string | number | boolean>'
-          : 'string';
 
         const optionsExpression = `options?: Omit<${UndefinedInitialDataOptions()}<${type(
           returnTypeName,
-        )}, Error, ${type(
+        )}, ThrowableError, ${type(
           dataTypeName,
-        )} | undefined, (${queryParamsType})[]>,'queryKey' | 'queryFn' | 'select'>`;
+        )} | undefined>,'queryKey' | 'queryFn' | 'select'>`;
 
         yield* buildDescription(
           method.description,
@@ -173,10 +181,11 @@ export class HookFile extends ModuleBuilder {
         );
 
         const typeName = dataType ? buildTypeName(dataType) : 'void';
+        const guard = () => this.runtime.fn('guard');
 
         const optionsExpression = `options?: Omit<${UseMutationOptions()}<${type(
           typeName,
-        )}, Error, ${
+        )}, ThrowableError, ${
           method.parameters.length ? type(paramsType) : 'never'
         }, unknown>, 'mutationFn'>`;
 
@@ -190,11 +199,10 @@ export class HookFile extends ModuleBuilder {
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
         yield `  return ${useMutation()}({`;
         yield `    mutationFn: async (${paramsExpression}) => {`;
-        yield `      const res = await ${serviceName}.${camel(
+        yield `      const res = await ${guard()}(${serviceName}.${camel(
           method.name.value,
-        )}(${paramsCallsite});`;
-        yield `      if (res.errors.length) { throw new ${CompositeError()}(res.errors); }`;
-        yield `      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }`;
+        )}(${paramsCallsite}));`;
+        yield `      if (res.errors.length) { throw { kind: 'handled', payload: res.errors } }`;
 
         const queryKeys = new Set<string>();
         queryKeys.add(this.buildResourceKey(httpPath, method)); // Invalidate this resource
@@ -222,6 +230,8 @@ export class HookFile extends ModuleBuilder {
           `${this.getHookName(method, { infinite: true })}_query_options`,
         );
 
+        const guard = () => this.runtime.fn('guard');
+
         yield `function ${infiniteOptionsHook}(${paramsExpression}) {`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}();`;
         yield `  return {`;
@@ -230,8 +240,8 @@ export class HookFile extends ModuleBuilder {
           infinite: true,
         })},`;
         yield `    queryFn: async ({ pageParam }: ${PageParam()}) => {`;
-        yield `      const res = await ${methodExpression}(${paramsCallsite});`;
-        yield `      if (res.errors.length) { throw new ${CompositeError()}(res.errors); }`;
+        yield `      const res = await ${guard()}(${methodExpression}(${paramsCallsite}));`;
+        yield `      if (res.errors.length) { throw {kind:'handled', payload: res.errors } }`;
         yield `      return res;`;
         yield `    },`;
         yield* this.buildInfiniteSelectFn(method);
@@ -319,24 +329,40 @@ export class HookFile extends ModuleBuilder {
       method.returnType?.typeName.value,
     );
 
+    const dataType = getTypeByName(
+      this.service,
+      returnType?.properties.find((p) => p.name.value === 'data')?.typeName
+        .value,
+    );
+
+    const returnTypeName = returnType ? buildTypeName(returnType) : 'void';
     const skipSelect =
       returnType &&
       returnType.properties.some(
         (prop) => prop.name.value !== 'data' && prop.name.value !== 'errors',
       );
+    let dataTypeName: string;
+    if (skipSelect) {
+      dataTypeName = returnTypeName;
+    } else {
+      dataTypeName = dataType ? buildTypeName(dataType) : 'void';
+    }
+
+    const guard = () => this.runtime.fn('guard');
 
     yield `const ${name} = (${paramsExpression}) => {`;
     yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
-    yield `  return ${queryOptions()}({`;
+    yield `  return ${queryOptions()}<${type(
+      returnTypeName,
+    )}, ThrowableError, ${type(dataTypeName)} | undefined>({`;
     yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
       includeRelayParams: true,
     })},`;
     yield `    queryFn: async () => {`;
-    yield `      const res = await ${serviceName}.${camel(
+    yield `      const res = await ${guard()}(${serviceName}.${camel(
       method.name.value,
-    )}(${paramsCallsite});`;
-    yield `      if (res.errors.length) { throw new ${CompositeError()}(res.errors); }`;
-    yield `      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }`;
+    )}(${paramsCallsite}));`;
+    yield `      if (res.errors.length) { throw { kind:'handled', payload: res.errors } }`;
     yield `      return res;`;
     yield `    },`;
     if (!skipSelect) {
