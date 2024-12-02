@@ -107,40 +107,13 @@ export class HookFile extends ModuleBuilder {
         const queryOptionsName = getQueryOptionsName(method);
         const paramsCallsite = method.parameters.length ? 'params' : '';
 
-        const returnType = getTypeByName(
-          this.service,
-          method.returnType?.typeName.value,
-        );
-        const dataType = getTypeByName(
-          this.service,
-          returnType?.properties.find((p) => p.name.value === 'data')?.typeName
-            .value,
-        );
-
-        const skipSelect =
-          returnType &&
-          returnType.properties.some(
-            (prop) =>
-              prop.name.value !== 'data' && prop.name.value !== 'errors',
-          );
-
-        const returnTypeName = returnType ? buildTypeName(returnType) : 'void';
-        let dataTypeName: string;
-        if (skipSelect) {
-          dataTypeName = returnTypeName;
-        } else {
-          dataTypeName = dataType ? buildTypeName(dataType) : 'void';
-        }
-
-        const queryParams = httpMethod?.parameters.filter((p) =>
-          isCacheParam(p, true),
-        );
+        const { dataTypeName, returnTypeName, array } = this.xxxx(method);
 
         const optionsExpression = `options?: Omit<${UndefinedInitialDataOptions()}<${type(
           returnTypeName,
         )}, ThrowableError, ${type(
           dataTypeName,
-        )} | undefined>,'queryKey' | 'queryFn' | 'select'>`;
+        )}${array} | undefined>,'queryKey' | 'queryFn' | 'select'>`;
 
         yield* buildDescription(
           method.description,
@@ -284,6 +257,42 @@ export class HookFile extends ModuleBuilder {
     }
   }
 
+  private xxxx(method: Method) {
+    const returnType = getTypeByName(
+      this.service,
+      method.returnType?.typeName.value,
+    );
+
+    const dataProp = returnType?.properties.find(
+      (prop) => prop.name.value === 'data',
+    );
+
+    const dataType = getTypeByName(this.service, dataProp?.typeName.value);
+
+    const skipSelect =
+      returnType &&
+      returnType.properties.some(
+        (prop) => prop.name.value !== 'data' && prop.name.value !== 'errors',
+      );
+
+    const returnTypeName = returnType ? buildTypeName(returnType) : 'void';
+    let dataTypeName: string;
+    if (skipSelect) {
+      dataTypeName = returnTypeName;
+    } else {
+      dataTypeName = dataProp && dataType ? buildTypeName(dataType) : 'void';
+    }
+
+    const dataTypeArray = (!skipSelect && dataProp?.isArray) ?? false;
+
+    return {
+      returnTypeName,
+      dataTypeName,
+      array: dataTypeArray ? '[]' : '',
+      skipSelect,
+    };
+  }
+
   private *buildInfiniteSelectFn(method: Method): Iterable<string> {
     const InfiniteData = () => this.tanstack.type('InfiniteData');
     const type = (t: string) => this.types.type(t);
@@ -324,29 +333,8 @@ export class HookFile extends ModuleBuilder {
       : '';
     const paramsCallsite = method.parameters.length ? 'params' : '';
 
-    const returnType = getTypeByName(
-      this.service,
-      method.returnType?.typeName.value,
-    );
-
-    const dataType = getTypeByName(
-      this.service,
-      returnType?.properties.find((p) => p.name.value === 'data')?.typeName
-        .value,
-    );
-
-    const returnTypeName = returnType ? buildTypeName(returnType) : 'void';
-    const skipSelect =
-      returnType &&
-      returnType.properties.some(
-        (prop) => prop.name.value !== 'data' && prop.name.value !== 'errors',
-      );
-    let dataTypeName: string;
-    if (skipSelect) {
-      dataTypeName = returnTypeName;
-    } else {
-      dataTypeName = dataType ? buildTypeName(dataType) : 'void';
-    }
+    const { dataTypeName, returnTypeName, array, skipSelect } =
+      this.xxxx(method);
 
     const guard = () => this.runtime.fn('guard');
 
@@ -354,7 +342,7 @@ export class HookFile extends ModuleBuilder {
     yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
     yield `  return ${queryOptions()}<${type(
       returnTypeName,
-    )}, ThrowableError, ${type(dataTypeName)} | undefined>({`;
+    )}, ThrowableError, ${type(dataTypeName)}${array} | undefined>({`;
     yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
       includeRelayParams: true,
     })},`;
