@@ -63,22 +63,12 @@ export class HookFile extends ModuleBuilder {
     const getNextPageParam = () => this.runtime.fn('getNextPageParam');
     const getPreviousPageParam = () => this.runtime.fn('getPreviousPageParam');
     const PageParam = () => this.runtime.type('PageParam');
+    const QueryError = () => this.runtime.type('QueryError');
 
     const type = (t: string) => this.types.type(t);
 
     const serviceName = camel(`${this.int.name.value}_service`);
     const serviceHookName = camel(`use_${this.int.name.value}_service`);
-
-    yield `export type ThrowableError =
-      | {
-          kind: 'handled';
-          payload: ${type('Error')}[];
-        }
-      | {
-          kind: 'unhandled';
-          payload: globalThis.Error;
-        };`;
-    yield '';
 
     for (const method of [...this.int.methods].sort((a, b) =>
       this.getHookName(a).localeCompare(this.getHookName(b)),
@@ -111,7 +101,7 @@ export class HookFile extends ModuleBuilder {
 
         const optionsExpression = `options?: Omit<${UndefinedInitialDataOptions()}<${type(
           returnTypeName,
-        )}, ThrowableError, ${type(
+        )}, ${QueryError()}<${type('Error')}[]>, ${type(
           dataTypeName,
         )}${array} | undefined>,'queryKey' | 'queryFn' | 'select'>`;
 
@@ -158,7 +148,7 @@ export class HookFile extends ModuleBuilder {
 
         const optionsExpression = `options?: Omit<${UseMutationOptions()}<${type(
           typeName,
-        )}, ThrowableError, ${
+        )}, ${QueryError()}<${type('Error')}[]>, ${
           method.parameters.length ? type(paramsType) : 'never'
         }, unknown>, 'mutationFn'>`;
 
@@ -175,7 +165,12 @@ export class HookFile extends ModuleBuilder {
         yield `      const res = await ${guard()}(${serviceName}.${camel(
           method.name.value,
         )}(${paramsCallsite}));`;
-        yield `      if (res.errors.length) { throw { kind: 'handled', payload: res.errors } }`;
+        yield `      if (res.errors.length) {`;
+        yield `        const handled: ${QueryError()}<${type(
+          'Error',
+        )}[]> = { kind: 'handled', payload: res.errors };`;
+        yield `        throw handled`;
+        yield `      }`;
 
         const queryKeys = new Set<string>();
         queryKeys.add(this.buildResourceKey(httpPath, method)); // Invalidate this resource
@@ -214,7 +209,12 @@ export class HookFile extends ModuleBuilder {
         })},`;
         yield `    queryFn: async ({ pageParam }: ${PageParam()}) => {`;
         yield `      const res = await ${guard()}(${methodExpression}(${paramsCallsite}));`;
-        yield `      if (res.errors.length) { throw {kind:'handled', payload: res.errors } }`;
+        yield `      if (res.errors.length) {`;
+        yield `        const handled: ${QueryError()}<${type(
+          'Error',
+        )}[]> = { kind: 'handled', payload: res.errors };`;
+        yield `        throw handled`;
+        yield `      }`;
         yield `      return res;`;
         yield `    },`;
         yield* this.buildInfiniteSelectFn(method);
@@ -320,7 +320,7 @@ export class HookFile extends ModuleBuilder {
     httpPath: HttpPath,
   ): Iterable<string> {
     const queryOptions = () => this.tanstack.fn('queryOptions');
-    const CompositeError = () => this.runtime.fn('CompositeError');
+    const QueryError = () => this.runtime.fn('QueryError');
     const type = (t: string) => this.types.type(t);
 
     const serviceName = camel(`${this.int.name.value}_service`);
@@ -342,7 +342,9 @@ export class HookFile extends ModuleBuilder {
     yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
     yield `  return ${queryOptions()}<${type(
       returnTypeName,
-    )}, ThrowableError, ${type(dataTypeName)}${array} | undefined>({`;
+    )}, ${QueryError()}<${type('Error')}[]>, ${type(
+      dataTypeName,
+    )}${array} | undefined>({`;
     yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
       includeRelayParams: true,
     })},`;
@@ -350,7 +352,12 @@ export class HookFile extends ModuleBuilder {
     yield `      const res = await ${guard()}(${serviceName}.${camel(
       method.name.value,
     )}(${paramsCallsite}));`;
-    yield `      if (res.errors.length) { throw { kind:'handled', payload: res.errors } }`;
+    yield `      if (res.errors.length) {`;
+    yield `        const handled: ${QueryError()}<${type(
+      'Error',
+    )}[]> = { kind: 'handled', payload: res.errors };`;
+    yield `        throw handled`;
+    yield `      }`;
     yield `      return res;`;
     yield `    },`;
     if (!skipSelect) {

@@ -11,13 +11,24 @@ export class RuntimeFile extends ModuleBuilder {
       } from '@tanstack/react-query';
 
       export type PageParam = { pageParam?: string };
-    
+
+      export type QueryError<THandledError> =
+        | {
+            kind: 'handled';
+            payload: THandledError;
+          }
+        | {
+            kind: 'unhandled';
+            payload: globalThis.Error;
+          };
+
       export async function guard<T>(fn: Promise<T>): Promise<T> {
         try {
           return await fn;
         } catch (payload) {
           console.error(payload);
-          throw { kind: 'unhandled', payload };
+          const unhandled: QueryError<never> = { kind: 'unhandled', payload };
+          throw unhandled;
         }
       }
       
