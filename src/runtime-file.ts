@@ -19,7 +19,7 @@ export class RuntimeFile extends ModuleBuilder {
           }
         | {
             kind: 'unhandled';
-            payload: globalThis.Error;
+            payload: unknown;
           };
 
       export async function guard<T>(fn: Promise<T>): Promise<T> {
