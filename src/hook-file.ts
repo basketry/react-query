@@ -1,13 +1,19 @@
 import {
+  Enum,
+  getEnumByName,
   getHttpMethodByName,
   getTypeByName,
+  getUnionByName,
   HttpMethod,
   HttpParameter,
   HttpPath,
   Interface,
   isRequired,
   Method,
+  Property,
   Service,
+  Type,
+  Union,
 } from 'basketry';
 
 import {
@@ -22,6 +28,13 @@ import { NamespacedReactQueryOptions } from './types';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
 import { getQueryOptionsName } from './name-factory';
+
+type Envelope = {
+  dataProp: Property;
+  dataType: Type | Enum | Union;
+  errorProp: Property;
+  errorType: Type | Enum | Union;
+};
 
 export class HookFile extends ModuleBuilder {
   constructor(
@@ -53,17 +66,16 @@ export class HookFile extends ModuleBuilder {
     const useSuspenseInfiniteQuery = () =>
       this.tanstack.fn('useSuspenseInfiniteQuery');
     const useSuspenseQuery = () => this.tanstack.fn('useSuspenseQuery');
-    const UseMutationOptions = () => this.tanstack.type('UseMutationOptions');
     const UndefinedInitialDataOptions = () =>
       this.tanstack.type('UndefinedInitialDataOptions');
 
     const applyPageParam = () => this.runtime.fn('applyPageParam');
-    const CompositeError = () => this.runtime.fn('CompositeError');
     const getInitialPageParam = () => this.runtime.fn('getInitialPageParam');
     const getNextPageParam = () => this.runtime.fn('getNextPageParam');
     const getPreviousPageParam = () => this.runtime.fn('getPreviousPageParam');
     const PageParam = () => this.runtime.type('PageParam');
     const QueryError = () => this.runtime.type('QueryError');
+    const assert = () => this.runtime.fn('assert');
 
     const type = (t: string) => this.types.type(t);
 
@@ -75,7 +87,6 @@ export class HookFile extends ModuleBuilder {
     )) {
       const name = this.getHookName(method);
       const suspenseName = this.getHookName(method, { suspense: true });
-      const infiniteName = this.getHookName(method, { infinite: true });
       const paramsType = from(buildParamsType(method));
       const httpMethod = getHttpMethodByName(this.service, method.name.value);
       const httpPath = this.getHttpPath(httpMethod);
@@ -97,13 +108,9 @@ export class HookFile extends ModuleBuilder {
         const queryOptionsName = getQueryOptionsName(method);
         const paramsCallsite = method.parameters.length ? 'params' : '';
 
-        const { dataTypeName, returnTypeName, array } = this.xxxx(method);
+        const genericTypes = this.buildGenericTypes(method).join(',');
 
-        const optionsExpression = `options?: Omit<${UndefinedInitialDataOptions()}<${type(
-          returnTypeName,
-        )}, ${QueryError()}<${type('Error')}[]>, ${type(
-          dataTypeName,
-        )}${array} | undefined>,'queryKey' | 'queryFn' | 'select'>`;
+        const optionsExpression = `options?: Omit<${UndefinedInitialDataOptions()}<${genericTypes}>,'queryKey' | 'queryFn' | 'select'>`;
 
         yield* buildDescription(
           method.description,
@@ -133,24 +140,14 @@ export class HookFile extends ModuleBuilder {
       } else if (httpPath) {
         const paramsCallsite = method.parameters.length ? 'params' : '';
 
-        const returnType = getTypeByName(
-          this.service,
-          method.returnType?.typeName.value,
-        );
-        const dataType = getTypeByName(
-          this.service,
-          returnType?.properties.find((p) => p.name.value === 'data')?.typeName
-            .value,
-        );
+        const { envelope } = this.unwrapEnvelop(method);
+        const dataProp = envelope?.dataProp;
 
-        const typeName = dataType ? buildTypeName(dataType) : 'void';
         const guard = () => this.runtime.fn('guard');
 
-        const optionsExpression = `options?: Omit<${UseMutationOptions()}<${type(
-          typeName,
-        )}, ${QueryError()}<${type('Error')}[]>, ${
-          method.parameters.length ? type(paramsType) : 'never'
-        }, unknown>, 'mutationFn'>`;
+        const mutationOptions = this.buildMutationOptionsType(method);
+
+        const optionsExpression = `options?: Omit<${mutationOptions()}, 'mutationFn'>`;
 
         yield* buildDescription(
           method.description,
@@ -180,6 +177,9 @@ export class HookFile extends ModuleBuilder {
 
         for (const queryKey of Array.from(queryKeys)) {
           yield `      queryClient.invalidateQueries({ queryKey: [${queryKey}] });`;
+        }
+        if (dataProp && !isRequired(dataProp)) {
+          yield `      ${assert()}(res.data);`;
         }
         yield `      return res.data;`;
         yield `    },`;
@@ -257,21 +257,42 @@ export class HookFile extends ModuleBuilder {
     }
   }
 
+  private buildMutationOptionsType(method: Method): () => string {
+    return () => {
+      const UseMutationOptions = () => this.tanstack.type('UseMutationOptions');
+      const type = (t: string) => this.types.type(t);
+      const QueryError = () => this.runtime.type('QueryError');
+
+      const { envelope } = this.unwrapEnvelop(method);
+
+      const dataType = envelope?.dataType;
+      const paramsType = from(buildParamsType(method));
+      const typeName = dataType ? buildTypeName(dataType) : 'void';
+
+      const genericTypes: string[] = [];
+
+      genericTypes.push(type(typeName));
+      genericTypes.push(`${QueryError()}<${type('Error')}[]>`);
+      if (method.parameters.length) {
+        genericTypes.push(type(paramsType));
+      }
+
+      return `${UseMutationOptions()}<${genericTypes.join(',')}>`;
+    };
+  }
+
+  // TODO: remove or rename this method
   private xxxx(method: Method) {
-    const returnType = getTypeByName(
-      this.service,
-      method.returnType?.typeName.value,
-    );
+    const { envelope, returnType } = this.unwrapEnvelop(method);
 
-    const dataProp = returnType?.properties.find(
-      (prop) => prop.name.value === 'data',
-    );
+    const dataProp = envelope?.dataProp;
 
-    const dataType = getTypeByName(this.service, dataProp?.typeName.value);
+    const dataType = envelope?.dataType;
 
     const skipSelect =
-      returnType &&
+      returnType?.kind === 'Type' &&
       returnType.properties.some(
+        // TODO: move to unwrapEnvelop ... something like "hasAdditionalProperties"
         (prop) => prop.name.value !== 'data' && prop.name.value !== 'errors',
       );
 
@@ -289,6 +310,7 @@ export class HookFile extends ModuleBuilder {
       returnTypeName,
       dataTypeName,
       array: dataTypeArray ? '[]' : '',
+      dataProp,
       skipSelect,
     };
   }
@@ -315,12 +337,42 @@ export class HookFile extends ModuleBuilder {
     }),`;
   }
 
+  private buildQueryOptions(method: Method): () => string {
+    const queryOptions = () => this.tanstack.fn('queryOptions');
+
+    return () =>
+      `${queryOptions()}<${this.buildGenericTypes(method).join(',')}>`;
+  }
+
+  private buildGenericTypes(method: Method): string[] {
+    const genericTypes: string[] = [];
+
+    const QueryError = () => this.runtime.type('QueryError');
+    const type = (t: string) => this.types.type(t);
+
+    const { returnTypeName, dataTypeName, array, skipSelect } =
+      this.xxxx(method);
+
+    // This is the type returned by the queryFn
+    genericTypes.push(type(returnTypeName));
+
+    // This is the type of the error returned by the hook if the query fails
+    genericTypes.push(`${QueryError()}<${type('Error')}[]>`);
+
+    // This is the type returned by the select function (if it exists)
+    if (!skipSelect) {
+      genericTypes.push(`${type(dataTypeName)}${array}`);
+    }
+    return genericTypes;
+  }
+
   private *generateQueryOptions(
     method: Method,
     httpPath: HttpPath,
   ): Iterable<string> {
-    const queryOptions = () => this.tanstack.fn('queryOptions');
-    const QueryError = () => this.runtime.fn('QueryError');
+    const queryOptions = this.buildQueryOptions(method);
+    const QueryError = () => this.runtime.type('QueryError');
+    const assert = () => this.runtime.fn('assert');
     const type = (t: string) => this.types.type(t);
 
     const serviceName = camel(`${this.int.name.value}_service`);
@@ -333,18 +385,13 @@ export class HookFile extends ModuleBuilder {
       : '';
     const paramsCallsite = method.parameters.length ? 'params' : '';
 
-    const { dataTypeName, returnTypeName, array, skipSelect } =
-      this.xxxx(method);
+    const { skipSelect, dataProp } = this.xxxx(method);
 
     const guard = () => this.runtime.fn('guard');
 
     yield `const ${name} = (${paramsExpression}) => {`;
     yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
-    yield `  return ${queryOptions()}<${type(
-      returnTypeName,
-    )}, ${QueryError()}<${type('Error')}[]>, ${type(
-      dataTypeName,
-    )}${array} | undefined>({`;
+    yield `  return ${queryOptions()}({`;
     yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
       includeRelayParams: true,
     })},`;
@@ -361,7 +408,11 @@ export class HookFile extends ModuleBuilder {
     yield `      return res;`;
     yield `    },`;
     if (!skipSelect) {
-      yield `    select: (data) => data.data,`;
+      if (dataProp && !isRequired(dataProp)) {
+        yield `    select: (data) => { ${assert()}(data.data); return data.data},`;
+      } else {
+        yield `    select: (data) => data.data,`;
+      }
     }
     yield `  });`;
     yield `};`;
@@ -541,6 +592,59 @@ export class HookFile extends ModuleBuilder {
 
     return true;
   }
+
+  private unwrapEnvelop(method: Method): {
+    envelope: Envelope | undefined;
+    returnType: Type | Enum | Union | undefined;
+  } {
+    const returnType =
+      getTypeByName(this.service, method.returnType?.typeName.value) ??
+      getEnumByName(this.service, method.returnType?.typeName.value) ??
+      getUnionByName(this.service, method.returnType?.typeName.value);
+    if (!returnType) return { envelope: undefined, returnType: undefined };
+
+    const dataProp =
+      returnType.kind === 'Type'
+        ? returnType.properties.find(
+            (p) =>
+              p.name.value.toLocaleLowerCase() === 'data' ||
+              p.name.value.toLocaleLowerCase() === 'value' ||
+              p.name.value.toLocaleLowerCase() === 'values',
+          )
+        : undefined;
+    if (!dataProp) return { envelope: undefined, returnType };
+
+    const errorProp =
+      returnType.kind === 'Type'
+        ? returnType.properties.find(
+            (p) =>
+              p.name.value.toLocaleLowerCase() === 'error' ||
+              p.name.value.toLocaleLowerCase() === 'errors',
+          )
+        : undefined;
+    if (!errorProp) return { envelope: undefined, returnType };
+
+    const dataType =
+      getTypeByName(this.service, dataProp?.typeName.value) ??
+      getEnumByName(this.service, dataProp?.typeName.value) ??
+      getUnionByName(this.service, dataProp?.typeName.value);
+    if (!dataType) return { envelope: undefined, returnType };
+
+    const errorType =
+      getTypeByName(this.service, errorProp?.typeName.value) ??
+      getEnumByName(this.service, errorProp?.typeName.value) ??
+      getUnionByName(this.service, errorProp?.typeName.value);
+    if (!errorType) return { envelope: undefined, returnType };
+
+    return {
+      envelope: { dataProp, dataType, errorProp, errorType },
+      returnType,
+    };
+  }
+}
+
+function brakets(member: { isArray: boolean }): '[]' | '' {
+  return member.isArray ? '[]' : '';
 }
 
 function isPathParam(part: string): boolean {
