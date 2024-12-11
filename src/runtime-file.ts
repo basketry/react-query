@@ -31,6 +31,12 @@ export class RuntimeFile extends ModuleBuilder {
           throw unhandled;
         }
       }
+
+      export function assert<T>(value: T | null | undefined): asserts value {
+        if (value === null || value === undefined) {
+          throw new Error('Expected value to be defined');
+        }
+      }
       
       export type RelayParams = {
         first?: number;
