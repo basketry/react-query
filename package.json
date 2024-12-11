@@ -1,6 +1,6 @@
 {
   "name": "@basketry/react-query",
-  "version": "0.1.0-alpha.7",
+  "version": "0.1.0-alpha.8",
   "description": "Basketry generator for generating Typescript interfaces",
   "main": "./lib/index.js",
   "scripts": {
