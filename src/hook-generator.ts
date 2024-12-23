@@ -3,13 +3,13 @@ import { plural } from 'pluralize';
 
 import { buildFilePath } from '@basketry/typescript';
 import { format, from } from '@basketry/typescript/lib/utils';
-import { header } from '@basketry/typescript/lib/warning';
 
 import { kebab } from 'case';
 import { NamespacedReactQueryOptions } from './types';
 import { HookFile } from './hook-file';
 import { ContextFile } from './context-file';
 import { RuntimeFile } from './runtime-file';
+import { formatMarkdown, ReadmeFile } from './readme-file';
 
 export const generateHooks: Generator = (service, options) => {
   return new HookGenerator(service, options).generate();
@@ -38,6 +38,14 @@ class HookGenerator {
         from(new ContextFile(this.service, this.options).build()),
         this.options,
       ),
+    });
+
+    files.push({
+      path: buildFilePath(['hooks', 'README.md'], this.service, this.options),
+      contents: formatMarkdown(
+        from(new ReadmeFile(this.service, this.options).build()),
+        this.options,
+      ) as unknown as string,
     });
 
     for (const int of this.service.interfaces) {
