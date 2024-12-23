@@ -27,7 +27,8 @@ import { camel } from 'case';
 import { NamespacedReactQueryOptions } from './types';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
-import { getQueryOptionsName } from './name-factory';
+import { NameFactory } from './name-factory';
+import { isRelayPaginaged } from './utils';
 
 type Envelope = {
   dataProp: Property;
@@ -44,6 +45,7 @@ export class HookFile extends ModuleBuilder {
   ) {
     super(service, options);
   }
+  private readonly nameFactory = new NameFactory(this.service, this.options);
   private readonly tanstack = new ImportBuilder('@tanstack/react-query');
   private readonly runtime = new ImportBuilder('./runtime');
   private readonly context = new ImportBuilder('./context');
@@ -79,14 +81,18 @@ export class HookFile extends ModuleBuilder {
 
     const type = (t: string) => this.types.type(t);
 
-    const serviceName = camel(`${this.int.name.value}_service`);
-    const serviceHookName = camel(`use_${this.int.name.value}_service`);
+    const serviceName = this.nameFactory.buildServiceName(this.int);
+    const serviceHookName = this.nameFactory.buildServiceHookName(this.int);
 
     for (const method of [...this.int.methods].sort((a, b) =>
-      this.getHookName(a).localeCompare(this.getHookName(b)),
+      this.nameFactory
+        .buildHookName(a)
+        .localeCompare(this.nameFactory.buildHookName(b)),
     )) {
-      const name = this.getHookName(method);
-      const suspenseName = this.getHookName(method, { suspense: true });
+      const name = this.nameFactory.buildHookName(method);
+      const suspenseName = this.nameFactory.buildHookName(method, {
+        suspense: true,
+      });
       const paramsType = from(buildParamsType(method));
       const httpMethod = getHttpMethodByName(this.service, method.name.value);
       const httpPath = this.getHttpPath(httpMethod);
@@ -105,7 +111,7 @@ export class HookFile extends ModuleBuilder {
       }
 
       if (isGet) {
-        const queryOptionsName = getQueryOptionsName(method);
+        const queryOptionsName = this.nameFactory.buildQueryOptionsName(method);
         const paramsCallsite = method.parameters.length ? 'params' : '';
 
         const genericTypes = this.buildGenericTypes(method).join(',');
@@ -195,7 +201,9 @@ export class HookFile extends ModuleBuilder {
           : '';
 
         const infiniteOptionsHook = camel(
-          `${this.getHookName(method, { infinite: true })}_query_options`,
+          `${this.nameFactory.buildHookName(method, {
+            infinite: true,
+          })}_query_options`,
         );
 
         const guard = () => this.runtime.fn('guard');
@@ -231,7 +239,7 @@ export class HookFile extends ModuleBuilder {
           undefined,
           method.deprecated?.value,
         );
-        yield `export const ${this.getHookName(method, {
+        yield `export const ${this.nameFactory.buildHookName(method, {
           suspense: false,
           infinite: true,
         })} = (${paramsExpression}) => {`;
@@ -244,7 +252,7 @@ export class HookFile extends ModuleBuilder {
           undefined,
           method.deprecated?.value,
         );
-        yield `export const ${this.getHookName(method, {
+        yield `export const ${this.nameFactory.buildHookName(method, {
           suspense: true,
           infinite: true,
         })} = (${paramsExpression}) => {`;
@@ -377,7 +385,7 @@ export class HookFile extends ModuleBuilder {
 
     const serviceName = camel(`${this.int.name.value}_service`);
     const serviceHookName = camel(`use_${this.int.name.value}_service`);
-    const name = getQueryOptionsName(method);
+    const name = this.nameFactory.buildQueryOptionsName(method);
     const paramsType = from(buildParamsType(method));
     const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
     const paramsExpression = method.parameters.length
@@ -416,27 +424,6 @@ export class HookFile extends ModuleBuilder {
     }
     yield `  });`;
     yield `};`;
-  }
-
-  private getHookName(
-    method: Method,
-    options?: { infinite?: boolean; suspense?: boolean },
-  ): string {
-    const name = method.name.value;
-    const httpMethod = getHttpMethodByName(this.service, name);
-
-    if (
-      httpMethod?.verb.value === 'get' &&
-      name.toLocaleLowerCase().startsWith('get')
-    ) {
-      return camel(
-        `use_${options?.suspense ? 'suspense_' : ''}${
-          options?.infinite ? 'infinite_' : ''
-        }${name.slice(3)}`,
-      );
-    }
-
-    return camel(`use_${name}`);
   }
 
   private getHttpPath(
@@ -529,68 +516,7 @@ export class HookFile extends ModuleBuilder {
   }
 
   private isRelayPaginated(method: Method): boolean {
-    if (!method.returnType || method.returnType.isPrimitive) return false;
-
-    const returnType = getTypeByName(
-      this.service,
-      method.returnType.typeName.value,
-    );
-    if (!returnType) return false;
-
-    // TODO: Check if the return type has a `pageInfo` property
-    if (
-      !returnType.properties.some(
-        (prop) => camel(prop.name.value) === 'pageInfo',
-      )
-    ) {
-      return false;
-    }
-
-    if (
-      !method.parameters.some(
-        (param) =>
-          camel(param.name.value) === 'first' &&
-          param.isPrimitive &&
-          param.typeName.value === 'integer',
-      )
-    ) {
-      return false;
-    }
-
-    if (
-      !method.parameters.some(
-        (param) =>
-          camel(param.name.value) === 'after' &&
-          param.isPrimitive &&
-          param.typeName.value === 'string',
-      )
-    ) {
-      return false;
-    }
-
-    if (
-      !method.parameters.some(
-        (param) =>
-          camel(param.name.value) === 'last' &&
-          param.isPrimitive &&
-          param.typeName.value === 'integer',
-      )
-    ) {
-      return false;
-    }
-
-    if (
-      !method.parameters.some(
-        (param) =>
-          camel(param.name.value) === 'before' &&
-          param.isPrimitive &&
-          param.typeName.value === 'string',
-      )
-    ) {
-      return false;
-    }
-
-    return true;
+    return isRelayPaginaged(method, this.service);
   }
 
   private unwrapEnvelop(method: Method): {
