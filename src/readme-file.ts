@@ -162,8 +162,9 @@ import { ${providerName} } from '${contextImportPath}';
 
 export const App = () => {
   const queryClient = new QueryClient();
+  
   return (
-    <${providerName} fetch={window.fetch.bind(window)} options={{ root: '/v${this.service.majorVersion.value}' }}>
+    <${providerName} root="/v${this.service.majorVersion.value}" >
       <QueryClientProvider client={queryClient}>
         <div>Your app goes here</div>
       </QueryClientProvider>

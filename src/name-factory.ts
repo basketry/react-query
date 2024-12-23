@@ -9,13 +9,11 @@ export class NameFactory {
   ) {}
 
   buildContextName(): string {
-    return pascal(`${this.service.title.value}_client_context`);
+    return pascal(`${this.service.title.value}_context`);
   }
 
   buildProviderName(): string {
-    return pascal(
-      `${this.service.title.value}_provider`,
-    );
+    return pascal(`${this.service.title.value}_provider`);
   }
 
   buildQueryOptionsName(method: Method): string {
