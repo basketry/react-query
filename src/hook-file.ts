@@ -160,11 +160,12 @@ export class HookFile extends ModuleBuilder {
           undefined,
           method.deprecated?.value,
         );
+        const mutationKey = [this.buildQueryKey(httpPath, method), { method }];
         yield `export function ${name}(${optionsExpression}) {`;
         yield `  const queryClient = ${useQueryClient()}();`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
         yield `  return ${useMutation()}({`;
-        yield `    mutationKey: [${method} ${this.buildQueryKey(httpPath, method)}],`;
+        yield `    mutationKey: ${mutationKey},`;
         yield `    mutationFn: async (${paramsExpression}) => {`;
         yield `      const res = await ${guard()}(${serviceName}.${camel(
           method.name.value,
@@ -193,6 +194,8 @@ export class HookFile extends ModuleBuilder {
         yield `    ...options,`;
         yield `  });`;
         yield `}`;
+
+        yield `${name}.mutationKey = ${mutationKey}`;
       }
 
       if (isGet && this.isRelayPaginated(method)) {
