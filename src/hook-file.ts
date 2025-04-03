@@ -160,7 +160,7 @@ export class HookFile extends ModuleBuilder {
           undefined,
           method.deprecated?.value,
         );
-        const mutationKey = [this.buildQueryKey(httpPath, method), { method }];
+        const mutationKey = `['${method.name.value}']`;
         yield `export function ${name}(${optionsExpression}) {`;
         yield `  const queryClient = ${useQueryClient()}();`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
