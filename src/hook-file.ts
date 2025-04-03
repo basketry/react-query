@@ -164,6 +164,7 @@ export class HookFile extends ModuleBuilder {
         yield `  const queryClient = ${useQueryClient()}();`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
         yield `  return ${useMutation()}({`;
+        yield `    mutationKey: ${this.buildQueryKey(httpPath, method)},`;
         yield `    mutationFn: async (${paramsExpression}) => {`;
         yield `      const res = await ${guard()}(${serviceName}.${camel(
           method.name.value,
