@@ -26,8 +26,12 @@ export class ContextFile extends ModuleBuilder {
     yield `export interface ClientContextProps { fetch: ${FetchLike()}; options: ${OptionsType()}; }`;
     yield `const ClientContext = ${createContext()}<ClientContextProps | undefined>( undefined );`;
     yield ``;
+    // Store context for non-hook access
+    yield `let currentContext: ClientContextProps | undefined;`;
+    yield ``;
     yield `export const ClientProvider: ${FC()}<${PropsWithChildren()}<ClientContextProps>> = ({ children, fetch, options }) => {`;
     yield `  const value = ${useMemo()}(() => ({ fetch, options }), [fetch, options.mapUnhandledException, options.mapValidationError, options.root]);`;
+    yield `  currentContext = value;`;
     yield `  return <ClientContext.Provider value={value}>{children}</ClientContext.Provider>;`;
     yield `};`;
     for (const int of this.service.interfaces) {
@@ -36,6 +40,18 @@ export class ContextFile extends ModuleBuilder {
       const interfaceName = pascal(`${int.name.value}_service`);
       const className = pascal(`http_${int.name.value}_service`);
 
+      const getterName = camel(`get_${int.name.value}_service`);
+
+      yield ``;
+      yield `export const ${getterName} = () => {`;
+      yield `  if (!currentContext) { throw new Error('${getterName} called outside of ClientProvider'); }`;
+      yield `  const ${localName}: ${this.types.type(
+        interfaceName,
+      )} = new ${this.client.fn(
+        className,
+      )}(currentContext.fetch, currentContext.options);`;
+      yield `  return ${localName};`;
+      yield `}`;
       yield ``;
       yield `export const ${hookName} = () => {`;
       yield `  const context = ${useContext()}(ClientContext);`;
