@@ -352,7 +352,6 @@ export class HookFile extends ModuleBuilder {
     );
     if (!returnType) return false;
 
-    // TODO: Check if the return type has a `pageInfo` property
     if (
       !returnType.properties.some(
         (prop) => camel(prop.name.value) === 'pageInfo',
