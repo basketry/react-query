@@ -130,3 +130,7 @@ dist
 .pnp.*
 
 lib/
+
+# Project-specific files
+plan/
+CLAUDE.md
