@@ -10,6 +10,7 @@ import { NamespacedReactQueryOptions } from './types';
 import { HookFile } from './hook-file';
 import { ContextFile } from './context-file';
 import { RuntimeFile } from './runtime-file';
+import { QueryKeyBuilderFile } from './query-key-builder-file';
 
 export const generateHooks: Generator = (service, options) => {
   return new HookGenerator(service, options).generate();
@@ -36,6 +37,18 @@ class HookGenerator {
       path: buildFilePath(['hooks', 'context.tsx'], this.service, this.options),
       contents: format(
         from(new ContextFile(this.service, this.options).build()),
+        this.options,
+      ),
+    });
+
+    files.push({
+      path: buildFilePath(
+        ['hooks', 'query-key-builder.ts'],
+        this.service,
+        this.options,
+      ),
+      contents: format(
+        from(new QueryKeyBuilderFile(this.service, this.options).build()),
         this.options,
       ),
     });

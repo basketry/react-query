@@ -123,8 +123,8 @@ export class QueryKeyBuilderFile extends ModuleBuilder {
     yield '>(';
     yield '  service: S,';
     yield '  operation: O,';
-    yield '  params: OperationParams<S, O>';
-    yield '): readonly [S, O, OperationParams<S, O>];';
+    yield '  params: OperationParams<S, O> extends undefined ? undefined : OperationParams<S, O>';
+    yield '): readonly [S, O, OperationParams<S, O> extends undefined ? {} : OperationParams<S, O>];';
     yield '';
 
     // Implementation
@@ -136,8 +136,10 @@ export class QueryKeyBuilderFile extends ModuleBuilder {
     yield '  operation?: O,';
     yield '  params?: OperationParams<S, O>';
     yield ') {';
-    yield '  if (params !== undefined) {';
-    yield '    return [service, operation!, params] as const;';
+    yield '  if (arguments.length === 3) {';
+    yield '    // When called with 3 arguments, always include params (use {} if undefined)';
+    yield '    const finalParams = params === undefined ? {} : params;';
+    yield '    return [service, operation!, finalParams] as const;';
     yield '  }';
     yield '  if (operation !== undefined) {';
     yield '    return [service, operation] as const;';
