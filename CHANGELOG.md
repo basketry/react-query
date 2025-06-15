@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Type-safe `matchQueryKey` function for building query keys with IntelliSense support
+  - Supports partial query matching at service, operation, or full parameter levels
+  - Provides compile-time type safety and autocomplete for all query operations
+  - Enables flexible cache invalidation patterns
 - Comprehensive migration guide (MIGRATION.md)
 - Support for direct composition with React Query hooks
 - Better TypeScript inference with queryOptions pattern
