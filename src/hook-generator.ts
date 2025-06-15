@@ -10,7 +10,7 @@ import { NamespacedReactQueryOptions } from './types';
 import { HookFile } from './hook-file';
 import { ContextFile } from './context-file';
 import { RuntimeFile } from './runtime-file';
-import { QueryKeyBuilderFile } from './query-key-builder-file';
+import { QueryKeyBuilderFile } from './query-key-builder';
 
 export const generateHooks: Generator = (service, options) => {
   return new HookGenerator(service, options).generate();
