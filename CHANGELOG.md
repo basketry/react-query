@@ -16,13 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING**: Updated query key structure for better cache management
   - From: `['/widgets', compact({ status: params?.status })].filter(Boolean)`
   - To: `['widget', 'getWidgets', params || {}] as const`
-- **BREAKING**: Context and provider names are now service-specific instead of generic
-  - Changed from `ClientContext`/`ClientProvider` to service-specific names (e.g., `WidgetServiceContext`/`WidgetServiceProvider`)
-  - Error messages now reference the correct service-specific provider names
-- Query and mutation options now preserve full method names (e.g., `getWidgetsQueryOptions` instead of `widgetsQueryOptions`)
-- Infinite query options maintain full method names (e.g., `getWidgetsInfiniteQueryOptions` instead of `widgetsInfiniteQueryOptions`)
 - Added non-hook service getters in context for use in queryOptions
-- Simplified runtime utilities by removing complex filtering logic
 
 ### Added
 
@@ -34,16 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for direct composition with React Query hooks
 - Better TypeScript inference with queryOptions pattern
 
-### Fixed
-
-- Context hooks now correctly reference the service-specific context instead of generic `ClientContext`
-- Provider error messages now show the correct service-specific provider name
-
 ### Removed
 
 - Wrapper hook functions (use queryOptions with React Query hooks directly)
 - Complex query key filtering logic
-- Logic that stripped 'get' prefix from method names
 
 ## [0.1.x] - Previous versions
 
