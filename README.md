@@ -8,6 +8,7 @@
 ## Features
 
 - Generates type-safe query and mutation options following React Query v5 patterns
+- Type-safe query key builder for cache operations with IntelliSense support
 - Automatic cache invalidation for mutations
 - Support for infinite queries with Relay-style pagination
 - React Context integration for dependency injection
@@ -41,10 +42,11 @@ The generator creates the following structure:
 ```
 src/api/
   hooks/
-    runtime.ts         # Shared utilities
-    context.tsx        # React Context for services
-    widgets.ts         # Query/mutation options for Widget service
-    gizmos.ts          # Query/mutation options for Gizmo service
+    runtime.ts           # Shared utilities
+    context.tsx          # React Context for services
+    query-key-builder.ts # Type-safe query key builder
+    widgets.ts           # Query/mutation options for Widget service
+    gizmos.ts            # Query/mutation options for Gizmo service
 ```
 
 ### Using the Generated Code
@@ -174,6 +176,44 @@ This structure enables:
 - Hierarchical cache invalidation (e.g., invalidate all widget queries)
 - Precise cache updates for specific queries
 - Better debugging with readable query keys
+
+### Type-Safe Query Key Builder
+
+Starting with v0.2.0, the generator also creates a `matchQueryKey` function that provides type-safe query key building for cache operations:
+
+```tsx
+import { matchQueryKey } from './api/hooks/query-key-builder';
+import { useQueryClient } from '@tanstack/react-query';
+
+function MyComponent() {
+  const queryClient = useQueryClient();
+
+  // Invalidate all queries for a service
+  queryClient.invalidateQueries({
+    queryKey: matchQueryKey('widget'),
+  });
+
+  // Invalidate all queries for a specific operation
+  queryClient.invalidateQueries({
+    queryKey: matchQueryKey('widget', 'getWidgets'),
+  });
+
+  // Invalidate a specific query with parameters
+  queryClient.invalidateQueries({
+    queryKey: matchQueryKey('widget', 'getWidgets', { status: 'active' }),
+  });
+
+  // Type-safe with IntelliSense support
+  // TypeScript will autocomplete service names, operations, and validate param types
+}
+```
+
+The `matchQueryKey` function provides:
+
+- **Type Safety**: Full TypeScript support with autocomplete for services, operations, and parameters
+- **Partial Matching**: Build keys at any granularity level for flexible cache invalidation
+- **Consistency**: Guarantees keys match the structure used by generated query options
+- **Developer Experience**: IntelliSense guides you through available options
 
 ## Migration from v0.1.x
 
