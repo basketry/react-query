@@ -34,19 +34,19 @@ import type {
   WidgetService,
 } from '../types';
 
-export interface ClientContextProps {
+export interface BasketryExampleContextProps {
   fetch: FetchLike;
   options: BasketryExampleOptions;
 }
-const ClientContext = createContext<ClientContextProps | undefined>(undefined);
+const BasketryExampleContext = createContext<
+  BasketryExampleContextProps | undefined
+>(undefined);
 
-let currentContext: ClientContextProps | undefined;
+let currentContext: BasketryExampleContextProps | undefined;
 
-export const ClientProvider: FC<PropsWithChildren<ClientContextProps>> = ({
-  children,
-  fetch,
-  options,
-}) => {
+export const BasketryExampleProvider: FC<
+  PropsWithChildren<BasketryExampleContextProps>
+> = ({ children, fetch, options }) => {
   const value = useMemo(
     () => ({ fetch, options }),
     [
@@ -58,13 +58,17 @@ export const ClientProvider: FC<PropsWithChildren<ClientContextProps>> = ({
   );
   currentContext = value;
   return (
-    <ClientContext.Provider value={value}>{children}</ClientContext.Provider>
+    <BasketryExampleContext.Provider value={value}>
+      {children}
+    </BasketryExampleContext.Provider>
   );
 };
 
 export const getGizmoService = () => {
   if (!currentContext) {
-    throw new Error('getGizmoService called outside of ClientProvider');
+    throw new Error(
+      'getGizmoService called outside of BasketryExampleProvider',
+    );
   }
   const gizmoService: GizmoService = new HttpGizmoService(
     currentContext.fetch,
@@ -74,9 +78,11 @@ export const getGizmoService = () => {
 };
 
 export const useGizmoService = () => {
-  const context = useContext(ClientContext);
+  const context = useContext(BasketryExampleContext);
   if (!context) {
-    throw new Error('useGizmoService must be used within a ClientProvider');
+    throw new Error(
+      'useGizmoService must be used within a BasketryExampleProvider',
+    );
   }
   const gizmoService: GizmoService = new HttpGizmoService(
     context.fetch,
@@ -87,7 +93,9 @@ export const useGizmoService = () => {
 
 export const getWidgetService = () => {
   if (!currentContext) {
-    throw new Error('getWidgetService called outside of ClientProvider');
+    throw new Error(
+      'getWidgetService called outside of BasketryExampleProvider',
+    );
   }
   const widgetService: WidgetService = new HttpWidgetService(
     currentContext.fetch,
@@ -97,9 +105,11 @@ export const getWidgetService = () => {
 };
 
 export const useWidgetService = () => {
-  const context = useContext(ClientContext);
+  const context = useContext(BasketryExampleContext);
   if (!context) {
-    throw new Error('useWidgetService must be used within a ClientProvider');
+    throw new Error(
+      'useWidgetService must be used within a BasketryExampleProvider',
+    );
   }
   const widgetService: WidgetService = new HttpWidgetService(
     context.fetch,
@@ -110,7 +120,9 @@ export const useWidgetService = () => {
 
 export const getExhaustiveService = () => {
   if (!currentContext) {
-    throw new Error('getExhaustiveService called outside of ClientProvider');
+    throw new Error(
+      'getExhaustiveService called outside of BasketryExampleProvider',
+    );
   }
   const exhaustiveService: ExhaustiveService = new HttpExhaustiveService(
     currentContext.fetch,
@@ -120,10 +132,10 @@ export const getExhaustiveService = () => {
 };
 
 export const useExhaustiveService = () => {
-  const context = useContext(ClientContext);
+  const context = useContext(BasketryExampleContext);
   if (!context) {
     throw new Error(
-      'useExhaustiveService must be used within a ClientProvider',
+      'useExhaustiveService must be used within a BasketryExampleProvider',
     );
   }
   const exhaustiveService: ExhaustiveService = new HttpExhaustiveService(
@@ -136,7 +148,7 @@ export const useExhaustiveService = () => {
 export const getAuthPermutationService = () => {
   if (!currentContext) {
     throw new Error(
-      'getAuthPermutationService called outside of ClientProvider',
+      'getAuthPermutationService called outside of BasketryExampleProvider',
     );
   }
   const authPermutationService: AuthPermutationService =
@@ -148,10 +160,10 @@ export const getAuthPermutationService = () => {
 };
 
 export const useAuthPermutationService = () => {
-  const context = useContext(ClientContext);
+  const context = useContext(BasketryExampleContext);
   if (!context) {
     throw new Error(
-      'useAuthPermutationService must be used within a ClientProvider',
+      'useAuthPermutationService must be used within a BasketryExampleProvider',
     );
   }
   const authPermutationService: AuthPermutationService =

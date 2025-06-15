@@ -51,21 +51,6 @@ export const deleteWidgetFooMutationOptions = () => {
   });
 };
 
-export const putWidgetMutationOptions = () => {
-  const widgetService = getWidgetService();
-  return mutationOptions({
-    mutationFn: async () => {
-      const res = await widgetService.putWidget();
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
-      return res.data;
-    },
-  });
-};
-
 export const getWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
   const widgetService = getWidgetService();
   return queryOptions({
@@ -94,6 +79,21 @@ export const getWidgetsQueryOptions = () => {
         throw new Error('Unexpected data error: Failed to get example');
       }
       return res;
+    },
+  });
+};
+
+export const putWidgetMutationOptions = () => {
+  const widgetService = getWidgetService();
+  return mutationOptions({
+    mutationFn: async () => {
+      const res = await widgetService.putWidget();
+      if (res.errors.length) {
+        throw new CompositeError(res.errors);
+      } else if (!res.data) {
+        throw new Error('Unexpected data error: Failed to get example');
+      }
+      return res.data;
     },
   });
 };

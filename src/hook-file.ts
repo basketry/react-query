@@ -2,7 +2,6 @@ import {
   getHttpMethodByName,
   getTypeByName,
   HttpMethod,
-  HttpParameter,
   HttpPath,
   Interface,
   isRequired,
@@ -21,7 +20,7 @@ import { camel } from 'case';
 import { NamespacedReactQueryOptions } from './types';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
-import { getQueryOptionsName } from './name-factory';
+import { NameFactory } from './name-factory';
 
 export class HookFile extends ModuleBuilder {
   constructor(
@@ -31,6 +30,7 @@ export class HookFile extends ModuleBuilder {
   ) {
     super(service, options);
   }
+  private readonly nameFactory = new NameFactory(this.service, this.options);
   private readonly tanstack = new ImportBuilder('@tanstack/react-query');
   private readonly runtime = new ImportBuilder('./runtime');
   private readonly context = new ImportBuilder('./context');
@@ -46,10 +46,6 @@ export class HookFile extends ModuleBuilder {
   ];
 
   *body(): Iterable<string> {
-    const mutationOptions = () => this.tanstack.fn('mutationOptions');
-    const queryOptions = () => this.tanstack.fn('queryOptions');
-    const infiniteQueryOptions = () => this.tanstack.fn('infiniteQueryOptions');
-
     const applyPageParam = () => this.runtime.fn('applyPageParam');
     const CompositeError = () => this.runtime.fn('CompositeError');
     const getInitialPageParam = () => this.runtime.fn('getInitialPageParam');
@@ -59,15 +55,11 @@ export class HookFile extends ModuleBuilder {
 
     const type = (t: string) => this.types.type(t);
 
-    const serviceName = camel(`${this.int.name.value}_service`);
-    const serviceHookName = camel(`use_${this.int.name.value}_service`);
+    const serviceName = this.nameFactory.buildServiceName(this.int);
 
     for (const method of [...this.int.methods].sort((a, b) =>
-      this.getHookName(a).localeCompare(this.getHookName(b)),
+      a.name.value.localeCompare(b.name.value),
     )) {
-      const name = this.getHookName(method);
-      const suspenseName = this.getHookName(method, { suspense: true });
-      const infiniteName = this.getHookName(method, { infinite: true });
       const paramsType = from(buildParamsType(method));
       const httpMethod = getHttpMethodByName(this.service, method.name.value);
       const httpPath = this.getHttpPath(httpMethod);
@@ -82,34 +74,14 @@ export class HookFile extends ModuleBuilder {
       const isGet = httpMethod?.verb.value === 'get' && !!httpPath;
 
       if (isGet) {
-        yield* this.generateQueryOptions(method, httpPath);
-      }
-
-      if (isGet) {
-        const queryOptionsName = getQueryOptionsName(method);
-        const paramsCallsite = method.parameters.length ? 'params' : '';
-
-        // Export queryOptions directly instead of wrapper hooks
+        yield* this.generateQueryOptions(method);
       } else if (httpPath) {
         const mutationOptions = () => this.tanstack.fn('mutationOptions');
-        const CompositeError = () => this.runtime.fn('CompositeError');
         const paramsCallsite = method.parameters.length ? 'params' : '';
         const serviceGetterName = camel(`get_${this.int.name.value}_service`);
         const mutationOptionsName = camel(
           `${method.name.value}_mutation_options`,
         );
-
-        const returnType = getTypeByName(
-          this.service,
-          method.returnType?.typeName.value,
-        );
-        const dataType = getTypeByName(
-          this.service,
-          returnType?.properties.find((p) => p.name.value === 'data')?.typeName
-            .value,
-        );
-
-        const typeName = dataType ? buildTypeName(dataType) : 'void';
 
         yield* buildDescription(
           method.description,
@@ -157,7 +129,7 @@ export class HookFile extends ModuleBuilder {
           serviceGetterName,
         )}();`;
         yield `  return ${infiniteQueryOptions()}({`;
-        yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
+        yield `    queryKey: ${this.buildQueryKey(method, {
           includeRelayParams: false,
           infinite: true,
         })},`;
@@ -202,17 +174,14 @@ export class HookFile extends ModuleBuilder {
     }),`;
   }
 
-  private *generateQueryOptions(
-    method: Method,
-    httpPath: HttpPath,
-  ): Iterable<string> {
+  private *generateQueryOptions(method: Method): Iterable<string> {
     const queryOptions = () => this.tanstack.fn('queryOptions');
     const CompositeError = () => this.runtime.fn('CompositeError');
     const type = (t: string) => this.types.type(t);
 
     const serviceName = camel(`${this.int.name.value}_service`);
     const serviceGetterName = camel(`get_${this.int.name.value}_service`);
-    const name = getQueryOptionsName(method);
+    const name = this.nameFactory.buildQueryOptionsName(method);
     const paramsType = from(buildParamsType(method));
     const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
     const paramsExpression = method.parameters.length
@@ -257,27 +226,6 @@ export class HookFile extends ModuleBuilder {
     yield `};`;
   }
 
-  private getHookName(
-    method: Method,
-    options?: { infinite?: boolean; suspense?: boolean },
-  ): string {
-    const name = method.name.value;
-    const httpMethod = getHttpMethodByName(this.service, name);
-
-    if (
-      httpMethod?.verb.value === 'get' &&
-      name.toLocaleLowerCase().startsWith('get')
-    ) {
-      return camel(
-        `use_${options?.suspense ? 'suspense_' : ''}${
-          options?.infinite ? 'infinite_' : ''
-        }${name.slice(3)}`,
-      );
-    }
-
-    return camel(`use_${name}`);
-  }
-
   private getHttpPath(
     httpMethod: HttpMethod | undefined,
   ): HttpPath | undefined {
@@ -297,7 +245,6 @@ export class HookFile extends ModuleBuilder {
   }
 
   private buildQueryKey(
-    httpPath: HttpPath,
     method: Method,
     options?: { includeRelayParams?: boolean; infinite?: boolean },
   ): string {
@@ -314,33 +261,6 @@ export class HookFile extends ModuleBuilder {
     }
 
     return `[${queryKey.join(', ')}] as const`;
-  }
-
-  private buildResourceKey(
-    httpPath: HttpPath,
-    method: Method,
-    options?: { skipTerminalParams: boolean },
-  ): string {
-    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
-
-    const parts = httpPath.path.value.split('/');
-
-    if (options?.skipTerminalParams) {
-      while (isPathParam(parts[parts.length - 1])) {
-        parts.pop();
-      }
-    }
-
-    const path = parts.filter(Boolean).map((part) => {
-      if (part.startsWith('{') && part.endsWith('}')) {
-        const param = part.slice(1, -1);
-        return `\${params${q}.${camel(param)}}`;
-      }
-
-      return part;
-    });
-
-    return `\`/${path.join('/')}\``;
   }
 
   private isRelayPaginated(method: Method): boolean {
@@ -406,26 +326,4 @@ export class HookFile extends ModuleBuilder {
 
     return true;
   }
-}
-
-function isPathParam(part: string): boolean {
-  return part.startsWith('{') && part.endsWith('}');
-}
-
-function isCacheParam(
-  param: HttpParameter,
-  includeRelayParams: boolean,
-): boolean {
-  if (param.in.value !== 'query') return false;
-
-  if (!includeRelayParams) {
-    return (
-      camel(param.name.value.toLowerCase()) !== 'first' &&
-      camel(param.name.value.toLowerCase()) !== 'after' &&
-      camel(param.name.value.toLowerCase()) !== 'last' &&
-      camel(param.name.value.toLowerCase()) !== 'before'
-    );
-  }
-
-  return true;
 }
