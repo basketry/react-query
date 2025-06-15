@@ -201,12 +201,12 @@ describe('QueryKeyBuilderFile', () => {
       const output = Array.from(builder.build()).join('\n');
 
       // Check implementation logic
-      expect(output).toContain('if (arguments.length === 3) {');
+      expect(output).toContain('if (arguments.length === 3 && operation !== undefined) {');
       expect(output).toContain(
         'const finalParams = params === undefined ? {} : params;',
       );
       expect(output).toContain(
-        'return [service, operation!, finalParams] as const;',
+        'return [service, operation, finalParams] as const;',
       );
       expect(output).toContain('if (operation !== undefined) {');
       expect(output).toContain('return [service, operation] as const;');

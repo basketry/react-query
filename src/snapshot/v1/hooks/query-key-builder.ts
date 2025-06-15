@@ -117,10 +117,10 @@ export function matchQueryKey<
   S extends ServiceKeys,
   O extends OperationKeys<S>,
 >(service: S, operation?: O, params?: OperationParams<S, O>) {
-  if (arguments.length === 3) {
+  if (arguments.length === 3 && operation !== undefined) {
     // When called with 3 arguments, always include params (use {} if undefined)
     const finalParams = params === undefined ? {} : params;
-    return [service, operation!, finalParams] as const;
+    return [service, operation, finalParams] as const;
   }
   if (operation !== undefined) {
     return [service, operation] as const;
