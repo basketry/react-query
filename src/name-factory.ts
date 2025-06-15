@@ -1,4 +1,4 @@
-import { getHttpMethodByName, Interface, Method, Service } from 'basketry';
+import { Interface, Method, Service } from 'basketry';
 import { camel, pascal } from 'case';
 import { NamespacedReactQueryOptions } from './types';
 

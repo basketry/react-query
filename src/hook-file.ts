@@ -114,10 +114,9 @@ export class HookFile extends ModuleBuilder {
           : '';
         const serviceGetterName = camel(`get_${this.int.name.value}_service`);
 
-        const name = method.name.value;
-        const infiniteOptionsName = name.toLocaleLowerCase().startsWith('get')
-          ? camel(`${name.slice(3)}_infinite_query_options`)
-          : camel(`${name}_infinite_query_options`);
+        const infiniteOptionsName = camel(
+          `${method.name.value}_infinite_query_options`,
+        );
 
         yield* buildDescription(
           method.description,
