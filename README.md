@@ -3,7 +3,7 @@
 
 # React Query
 
-[Basketry generator](https://github.com/basketry/basketry) for generating [React Query](https://tanstack.com/query) (TanStack Query) hooks and query/mutation options. This generator can be coupled with any Basketry parser to automatically generate type-safe React Query integration from your API definitions.
+[Basketry generator](https://basketry.io) for generating [React Query](https://tanstack.com/query) (TanStack Query) hooks and query/mutation options. This generator can be coupled with any Basketry parser to automatically generate type-safe React Query integration from your API definitions.
 
 ## Features
 
