@@ -1,0 +1,331 @@
+import { File, Service } from 'basketry';
+import { generateHooks } from './hook-generator';
+import { NamespacedReactQueryOptions } from './types';
+
+describe('HookFile', () => {
+  describe('Infinite Query Options', () => {
+    it('generates infinite query options for relay-paginated methods', async () => {
+      const service: Service = {
+        basketry: '1.1-rc',
+        kind: 'Service',
+        title: { value: 'TestService' },
+        majorVersion: { value: 1 },
+        sourcePath: 'test.json',
+        loc: 'test.json',
+        interfaces: [
+          {
+            kind: 'Interface',
+            name: { value: 'widget' },
+            methods: [
+              {
+                kind: 'Method',
+                name: { value: 'getWidgets' },
+                security: [],
+                parameters: [
+                  {
+                    kind: 'Parameter',
+                    name: { value: 'first' },
+                    typeName: { value: 'integer' },
+                    isPrimitive: true,
+                    isArray: false,
+                    rules: [],
+                  },
+                  {
+                    kind: 'Parameter',
+                    name: { value: 'after' },
+                    typeName: { value: 'string' },
+                    isPrimitive: true,
+                    isArray: false,
+                    rules: [],
+                  },
+                  {
+                    kind: 'Parameter',
+                    name: { value: 'last' },
+                    typeName: { value: 'integer' },
+                    isPrimitive: true,
+                    isArray: false,
+                    rules: [],
+                  },
+                  {
+                    kind: 'Parameter',
+                    name: { value: 'before' },
+                    typeName: { value: 'string' },
+                    isPrimitive: true,
+                    isArray: false,
+                    rules: [],
+                  },
+                ],
+                returnType: {
+                  kind: 'ReturnType',
+                  typeName: { value: 'WidgetConnection' },
+                  isPrimitive: false,
+                  isArray: false,
+                  rules: [],
+                },
+              },
+            ],
+            protocols: {
+              http: [
+                {
+                  kind: 'HttpPath',
+                  path: { value: '/widgets' },
+                  methods: [
+                    {
+                      kind: 'HttpMethod',
+                      name: { value: 'getWidgets' },
+                      verb: { value: 'get' },
+                      parameters: [],
+                      successCode: { value: 200 },
+                      requestMediaTypes: [],
+                      responseMediaTypes: [],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        types: [
+          {
+            kind: 'Type',
+            name: { value: 'WidgetConnection' },
+            properties: [
+              {
+                kind: 'Property',
+                name: { value: 'pageInfo' },
+                typeName: { value: 'PageInfo' },
+                isPrimitive: false,
+                isArray: false,
+                rules: [],
+              },
+              {
+                kind: 'Property',
+                name: { value: 'data' },
+                typeName: { value: 'Widget' },
+                isPrimitive: false,
+                isArray: true,
+                rules: [],
+              },
+            ],
+            rules: [],
+          },
+          {
+            kind: 'Type',
+            name: { value: 'PageInfo' },
+            properties: [
+              {
+                kind: 'Property',
+                name: { value: 'startCursor' },
+                typeName: { value: 'string' },
+                isPrimitive: true,
+                isArray: false,
+                rules: [],
+              },
+              {
+                kind: 'Property',
+                name: { value: 'endCursor' },
+                typeName: { value: 'string' },
+                isPrimitive: true,
+                isArray: false,
+                rules: [],
+              },
+              {
+                kind: 'Property',
+                name: { value: 'hasNextPage' },
+                typeName: { value: 'boolean' },
+                isPrimitive: true,
+                isArray: false,
+                rules: [],
+              },
+              {
+                kind: 'Property',
+                name: { value: 'hasPreviousPage' },
+                typeName: { value: 'boolean' },
+                isPrimitive: true,
+                isArray: false,
+                rules: [],
+              },
+            ],
+            rules: [],
+          },
+          {
+            kind: 'Type',
+            name: { value: 'Widget' },
+            properties: [
+              {
+                kind: 'Property',
+                name: { value: 'id' },
+                typeName: { value: 'string' },
+                isPrimitive: true,
+                isArray: false,
+                rules: [],
+              },
+              {
+                kind: 'Property',
+                name: { value: 'name' },
+                typeName: { value: 'string' },
+                isPrimitive: true,
+                isArray: false,
+                rules: [],
+              },
+            ],
+            rules: [],
+          },
+        ],
+        enums: [],
+        unions: [],
+        meta: [],
+      };
+
+      const options: NamespacedReactQueryOptions = {
+        reactQuery: {
+          typesModule: '../types',
+          clientModule: '../http-client',
+        },
+      };
+
+      const files: File[] = [];
+      for await (const file of generateHooks(service, options)) {
+        files.push(file);
+      }
+
+      const widgetsFile = files.find(
+        (f) => f.path[f.path.length - 1] === 'widgets.ts',
+      );
+      expect(widgetsFile).toBeDefined();
+
+      const content = widgetsFile!.contents;
+
+      // Check that infinite query options are generated with full method names
+      expect(content).toContain('export const getWidgetsInfiniteQueryOptions');
+
+      // Verify the query key includes the infinite flag
+      expect(content).toMatch(
+        /queryKey:\s*\['widget',\s*'getWidgets',[^,]+,\s*\{\s*infinite:\s*true\s*\}/,
+      );
+
+      // Check that regular query options are also generated
+      expect(content).toContain('export const getWidgetsQueryOptions');
+
+      // Verify relay pagination utilities are used
+      expect(content).toContain('getNextPageParam');
+      expect(content).toContain('getPreviousPageParam');
+      expect(content).toContain('getInitialPageParam');
+      expect(content).toContain('applyPageParam');
+    });
+
+    it('does not generate infinite query options for non-relay-paginated methods', async () => {
+      const service: Service = {
+        basketry: '1.1-rc',
+        kind: 'Service',
+        title: { value: 'TestService' },
+        majorVersion: { value: 1 },
+        sourcePath: 'test.json',
+        loc: 'test.json',
+        interfaces: [
+          {
+            kind: 'Interface',
+            name: { value: 'widget' },
+            methods: [
+              {
+                kind: 'Method',
+                name: { value: 'getWidget' },
+                security: [],
+                parameters: [
+                  {
+                    kind: 'Parameter',
+                    name: { value: 'id' },
+                    typeName: { value: 'string' },
+                    isPrimitive: true,
+                    isArray: false,
+                    rules: [],
+                  },
+                ],
+                returnType: {
+                  kind: 'ReturnType',
+                  typeName: { value: 'WidgetResponse' },
+                  isPrimitive: false,
+                  isArray: false,
+                  rules: [],
+                },
+              },
+            ],
+            protocols: {
+              http: [
+                {
+                  kind: 'HttpPath',
+                  path: { value: '/widgets/{id}' },
+                  methods: [
+                    {
+                      kind: 'HttpMethod',
+                      name: { value: 'getWidget' },
+                      verb: { value: 'get' },
+                      parameters: [],
+                      successCode: { value: 200 },
+                      requestMediaTypes: [],
+                      responseMediaTypes: [],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        types: [
+          {
+            kind: 'Type',
+            name: { value: 'WidgetResponse' },
+            properties: [
+              {
+                kind: 'Property',
+                name: { value: 'data' },
+                typeName: { value: 'Widget' },
+                isPrimitive: false,
+                isArray: false,
+                rules: [],
+              },
+            ],
+            rules: [],
+          },
+          {
+            kind: 'Type',
+            name: { value: 'Widget' },
+            properties: [
+              {
+                kind: 'Property',
+                name: { value: 'id' },
+                typeName: { value: 'string' },
+                isPrimitive: true,
+                isArray: false,
+                rules: [],
+              },
+            ],
+            rules: [],
+          },
+        ],
+        enums: [],
+        unions: [],
+        meta: [],
+      };
+
+      const options: NamespacedReactQueryOptions = {};
+
+      const files: File[] = [];
+      for await (const file of generateHooks(service, options)) {
+        files.push(file);
+      }
+
+      const widgetsFile = files.find(
+        (f) => f.path[f.path.length - 1] === 'widgets.ts',
+      );
+      expect(widgetsFile).toBeDefined();
+
+      const content = widgetsFile!.contents;
+
+      expect(content).toContain('export const getWidgetQueryOptions');
+      expect(content).not.toContain('InfiniteQueryOptions');
+      expect(content).not.toContain('infiniteQueryOptions');
+    });
+  });
+});
+
