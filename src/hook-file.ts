@@ -86,7 +86,7 @@ export class HookFile extends ModuleBuilder {
       }
 
       if (isGet) {
-        const queryOptionsName = getQueryOptionsName(method, this.service);
+        const queryOptionsName = getQueryOptionsName(method);
         const paramsCallsite = method.parameters.length ? 'params' : '';
 
         // Export queryOptions directly instead of wrapper hooks
@@ -212,7 +212,7 @@ export class HookFile extends ModuleBuilder {
 
     const serviceName = camel(`${this.int.name.value}_service`);
     const serviceGetterName = camel(`get_${this.int.name.value}_service`);
-    const name = getQueryOptionsName(method, this.service);
+    const name = getQueryOptionsName(method);
     const paramsType = from(buildParamsType(method));
     const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
     const paramsExpression = method.parameters.length

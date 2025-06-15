@@ -45,7 +45,7 @@ export const createGizmoMutationOptions = () => {
  * Only has a summary
  * @deprecated
  */
-export const gizmosQueryOptions = (params?: GetGizmosParams) => {
+export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
   const gizmoService = getGizmoService();
   return queryOptions({
     queryKey: ['gizmo', 'getGizmos', params || {}] as const,

@@ -66,7 +66,7 @@ export const putWidgetMutationOptions = () => {
   });
 };
 
-export const widgetFooQueryOptions = (params: GetWidgetFooParams) => {
+export const getWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
   const widgetService = getWidgetService();
   return queryOptions({
     queryKey: ['widget', 'getWidgetFoo', params || {}] as const,
@@ -82,7 +82,7 @@ export const widgetFooQueryOptions = (params: GetWidgetFooParams) => {
   });
 };
 
-export const widgetsQueryOptions = () => {
+export const getWidgetsQueryOptions = () => {
   const widgetService = getWidgetService();
   return queryOptions({
     queryKey: ['widget', 'getWidgets', {}] as const,
