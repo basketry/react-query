@@ -85,6 +85,20 @@ queryClient.invalidateQueries({
 - Easier testing - options can be tested without React context
 - Consistent with React Query v5 best practices
 
+### Automated Migration
+
+We provide a jscodeshift codemod to automatically migrate your codebase:
+
+```bash
+# Preview changes (dry run)
+./node_modules/@basketry/react-query/codemod/run-migration.sh
+
+# Apply changes
+./node_modules/@basketry/react-query/codemod/run-migration.sh --apply
+```
+
+See [codemod documentation](./codemod/README.md) for more details.
+
 ## For contributors:
 
 ### Run this project
