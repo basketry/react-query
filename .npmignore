@@ -4,3 +4,6 @@
 src
 **/snapshot
 /*.*
+!codemod
+codemod/__tests__
+codemod/__testfixtures__

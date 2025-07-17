@@ -6,26 +6,31 @@ import {
   useSuspenseQuery,
   useSuspenseInfiniteQuery,
 } from '@tanstack/react-query';
-import { 
-  getWidgetsQueryOptions, 
-  getWidgetQueryOptions, 
+import {
+  getWidgetsQueryOptions,
+  getWidgetQueryOptions,
   createWidgetMutationOptions,
   updateWidgetMutationOptions,
   deleteWidgetMutationOptions,
   getWidgetsInfiniteQueryOptions,
-  SomeOtherExport
+  SomeOtherExport,
 } from '../hooks/widgets';
-import { getGizmosQueryOptions, createGizmoMutationOptions } from '../hooks/gizmos';
+import {
+  getGizmosQueryOptions,
+  createGizmoMutationOptions,
+} from '../hooks/gizmos';
 
 // Simple query hook usage
 export function WidgetList() {
-  const { data, isLoading } = useQuery(getWidgetsQueryOptions({ status: 'active' }));
-  
+  const { data, isLoading } = useQuery(
+    getWidgetsQueryOptions({ status: 'active' }),
+  );
+
   if (isLoading) return <div>Loading...</div>;
-  
+
   return (
     <ul>
-      {data?.items.map(widget => (
+      {data?.items.map((widget) => (
         <li key={widget.id}>{widget.name}</li>
       ))}
     </ul>
@@ -40,23 +45,27 @@ export function TypedWidgetDetail({ id }: { id: string }) {
 
 // Mutation hook usage
 export function CreateWidgetForm() {
-  const createWidget = useMutation(createWidgetMutationOptions({
-    onSuccess: (data) => {
-      console.log('Created widget:', data);
-    },
-    onError: (error) => {
-      console.error('Failed to create widget:', error);
-    }
-  }));
-  
+  const createWidget = useMutation(
+    createWidgetMutationOptions({
+      onSuccess: (data) => {
+        console.log('Created widget:', data);
+      },
+      onError: (error) => {
+        console.error('Failed to create widget:', error);
+      },
+    }),
+  );
+
   const updateWidget = useMutation(updateWidgetMutationOptions());
   const deleteWidget = useMutation(deleteWidgetMutationOptions());
-  
+
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      createWidget.mutate({ name: 'New Widget' });
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        createWidget.mutate({ name: 'New Widget' });
+      }}
+    >
       <button type="submit">Create</button>
     </form>
   );
@@ -64,18 +73,14 @@ export function CreateWidgetForm() {
 
 // Infinite query usage
 export function InfiniteWidgetList() {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage
-  } = useInfiniteQuery(getWidgetsInfiniteQueryOptions({ limit: 20 }));
-  
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery(getWidgetsInfiniteQueryOptions({ limit: 20 }));
+
   return (
     <div>
       {data?.pages.map((page, i) => (
         <div key={i}>
-          {page.items.map(widget => (
+          {page.items.map((widget) => (
             <div key={widget.id}>{widget.name}</div>
           ))}
         </div>
@@ -92,11 +97,13 @@ export function InfiniteWidgetList() {
 
 // Suspense query usage
 export function SuspenseWidgetList() {
-  const { data } = useSuspenseQuery(getWidgetsQueryOptions({ status: 'active' }));
-  
+  const { data } = useSuspenseQuery(
+    getWidgetsQueryOptions({ status: 'active' }),
+  );
+
   return (
     <ul>
-      {data.items.map(widget => (
+      {data.items.map((widget) => (
         <li key={widget.id}>{widget.name}</li>
       ))}
     </ul>
@@ -105,16 +112,18 @@ export function SuspenseWidgetList() {
 
 // Suspense infinite query usage
 export function SuspenseInfiniteWidgets() {
-  const { data, fetchNextPage } = useSuspenseInfiniteQuery(getWidgetsInfiniteQueryOptions({ 
-    limit: 10,
-    sort: 'name' 
-  }));
-  
+  const { data, fetchNextPage } = useSuspenseInfiniteQuery(
+    getWidgetsInfiniteQueryOptions({
+      limit: 10,
+      sort: 'name',
+    }),
+  );
+
   return (
     <div>
       {data.pages.map((page, i) => (
         <React.Fragment key={i}>
-          {page.items.map(widget => (
+          {page.items.map((widget) => (
             <div key={widget.id}>{widget.name}</div>
           ))}
         </React.Fragment>
@@ -129,7 +138,7 @@ export function MultiServiceComponent() {
   const widgets = useQuery(getWidgetsQueryOptions());
   const gizmos = useQuery(getGizmosQueryOptions({ type: 'advanced' }));
   const createGizmo = useMutation(createGizmoMutationOptions());
-  
+
   return (
     <div>
       <h2>Widgets: {widgets.data?.items.length || 0}</h2>
@@ -147,7 +156,7 @@ export function CallbackComponent() {
     const result = useQuery(getWidgetsQueryOptions({ limit: 5 }));
     return result;
   }, []);
-  
+
   return <div>Callback component</div>;
 }
 

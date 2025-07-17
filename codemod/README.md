@@ -7,6 +7,7 @@ This codemod helps automatically migrate your codebase from `@basketry/react-que
 The codemod will transform:
 
 ### Query Hooks
+
 ```typescript
 // Before
 import { useGetWidgets } from '../hooks/widgets';
@@ -19,6 +20,7 @@ const { data } = useQuery(getWidgetsQueryOptions({ status: 'active' }));
 ```
 
 ### Mutation Hooks
+
 ```typescript
 // Before
 import { useCreateWidget } from '../hooks/widgets';
@@ -27,10 +29,13 @@ const mutation = useCreateWidget({ onSuccess: handleSuccess });
 // After
 import { useMutation } from '@tanstack/react-query';
 import { createWidgetMutationOptions } from '../hooks/widgets';
-const mutation = useMutation(createWidgetMutationOptions({ onSuccess: handleSuccess }));
+const mutation = useMutation(
+  createWidgetMutationOptions({ onSuccess: handleSuccess }),
+);
 ```
 
 ### Infinite Query Hooks
+
 ```typescript
 // Before
 import { useGetWidgetsInfinite } from '../hooks/widgets';
@@ -39,10 +44,13 @@ const { data, fetchNextPage } = useGetWidgetsInfinite({ limit: 20 });
 // After
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getWidgetsInfiniteQueryOptions } from '../hooks/widgets';
-const { data, fetchNextPage } = useInfiniteQuery(getWidgetsInfiniteQueryOptions({ limit: 20 }));
+const { data, fetchNextPage } = useInfiniteQuery(
+  getWidgetsInfiniteQueryOptions({ limit: 20 }),
+);
 ```
 
 ### Suspense Hooks
+
 ```typescript
 // Before
 import { useSuspenseGetWidgets } from '../hooks/widgets';
@@ -118,6 +126,7 @@ git checkout -- .
 2. **Custom Wrappers**: If you've created custom wrappers around the generated hooks, those won't be automatically migrated.
 
 3. **Import Aliases**: If you're using import aliases or renamed imports, you may need to update those manually:
+
    ```typescript
    // This won't be transformed automatically
    import { useGetWidgets as useWidgets } from '../hooks/widgets';
@@ -128,6 +137,7 @@ git checkout -- .
 ## Testing the Codemod
 
 ### Run Tests
+
 ```bash
 # Install dependencies
 npm install
@@ -137,6 +147,7 @@ npm test codemod/__tests__/react-query-v0.2-migration.test.js
 ```
 
 ### Test on a Single File
+
 ```bash
 # Create a test file
 echo "import { useGetWidgets } from './hooks/widgets';
@@ -162,16 +173,21 @@ After running the codemod, review:
 ## Troubleshooting
 
 ### "Cannot find module" errors
+
 Make sure you're running the codemod from your project root where `node_modules` is located.
 
 ### Parser errors
+
 Ensure you're using the `--parser=tsx` flag for TypeScript files.
 
 ### Nothing is transformed
+
 Check that your imports match the expected pattern (from `'../hooks/[service]'` modules).
 
 ### Formatting issues
+
 The codemod tries to preserve formatting, but you may want to run your formatter after:
+
 ```bash
 npm run prettier -- --write src/
 # or

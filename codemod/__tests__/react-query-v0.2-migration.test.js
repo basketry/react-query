@@ -6,7 +6,7 @@ defineTest(
   '../react-query-v0.2-migration',
   {},
   'react-query-v0.2-migration',
-  { parser: 'tsx' }
+  { parser: 'tsx' },
 );
 
 // You can also add more specific tests
@@ -17,7 +17,7 @@ describe('react-query-v0.2-migration codemod', () => {
   const transformOptions = {
     jscodeshift,
     stats: () => {},
-    report: () => {}
+    report: () => {},
   };
 
   it('should transform simple query hooks', () => {
@@ -42,7 +42,7 @@ function Component() {
 
     const result = transform(
       { path: 'test.tsx', source: input },
-      transformOptions
+      transformOptions,
     );
 
     expect(result).toBe(expected.trim());
@@ -70,7 +70,7 @@ function Component() {
 
     const result = transform(
       { path: 'test.tsx', source: input },
-      transformOptions
+      transformOptions,
     );
 
     expect(result).toBe(expected.trim());
@@ -107,7 +107,7 @@ function Component() {
 
     const result = transform(
       { path: 'test.tsx', source: input },
-      transformOptions
+      transformOptions,
     );
 
     expect(result).toBe(expected.trim());
@@ -128,7 +128,7 @@ function Component() {
 
     const result = transform(
       { path: 'test.tsx', source: input },
-      transformOptions
+      transformOptions,
     );
 
     expect(result).toBe(input);
@@ -161,7 +161,7 @@ function Component() {
 
     const result = transform(
       { path: 'test.tsx', source: input },
-      transformOptions
+      transformOptions,
     );
 
     expect(result).toBe(expected.trim());

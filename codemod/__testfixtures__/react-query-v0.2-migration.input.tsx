@@ -1,13 +1,13 @@
 import React from 'react';
-import { 
-  useGetWidgets, 
-  useGetWidget, 
+import {
+  useGetWidgets,
+  useGetWidget,
   useCreateWidget,
   useUpdateWidget,
   useDeleteWidget,
   useGetWidgetsInfinite,
   useSuspenseGetWidgets,
-  useSuspenseGetWidgetsInfinite
+  useSuspenseGetWidgetsInfinite,
 } from '../hooks/widgets';
 import { useGetGizmos, useCreateGizmo } from '../hooks/gizmos';
 import { SomeOtherExport } from '../hooks/widgets';
@@ -15,12 +15,12 @@ import { SomeOtherExport } from '../hooks/widgets';
 // Simple query hook usage
 export function WidgetList() {
   const { data, isLoading } = useGetWidgets({ status: 'active' });
-  
+
   if (isLoading) return <div>Loading...</div>;
-  
+
   return (
     <ul>
-      {data?.items.map(widget => (
+      {data?.items.map((widget) => (
         <li key={widget.id}>{widget.name}</li>
       ))}
     </ul>
@@ -41,17 +41,19 @@ export function CreateWidgetForm() {
     },
     onError: (error) => {
       console.error('Failed to create widget:', error);
-    }
+    },
   });
-  
+
   const updateWidget = useUpdateWidget();
   const deleteWidget = useDeleteWidget();
-  
+
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      createWidget.mutate({ name: 'New Widget' });
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        createWidget.mutate({ name: 'New Widget' });
+      }}
+    >
       <button type="submit">Create</button>
     </form>
   );
@@ -59,18 +61,14 @@ export function CreateWidgetForm() {
 
 // Infinite query usage
 export function InfiniteWidgetList() {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage
-  } = useGetWidgetsInfinite({ limit: 20 });
-  
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useGetWidgetsInfinite({ limit: 20 });
+
   return (
     <div>
       {data?.pages.map((page, i) => (
         <div key={i}>
-          {page.items.map(widget => (
+          {page.items.map((widget) => (
             <div key={widget.id}>{widget.name}</div>
           ))}
         </div>
@@ -88,10 +86,10 @@ export function InfiniteWidgetList() {
 // Suspense query usage
 export function SuspenseWidgetList() {
   const { data } = useSuspenseGetWidgets({ status: 'active' });
-  
+
   return (
     <ul>
-      {data.items.map(widget => (
+      {data.items.map((widget) => (
         <li key={widget.id}>{widget.name}</li>
       ))}
     </ul>
@@ -100,16 +98,16 @@ export function SuspenseWidgetList() {
 
 // Suspense infinite query usage
 export function SuspenseInfiniteWidgets() {
-  const { data, fetchNextPage } = useSuspenseGetWidgetsInfinite({ 
+  const { data, fetchNextPage } = useSuspenseGetWidgetsInfinite({
     limit: 10,
-    sort: 'name' 
+    sort: 'name',
   });
-  
+
   return (
     <div>
       {data.pages.map((page, i) => (
         <React.Fragment key={i}>
-          {page.items.map(widget => (
+          {page.items.map((widget) => (
             <div key={widget.id}>{widget.name}</div>
           ))}
         </React.Fragment>
@@ -124,7 +122,7 @@ export function MultiServiceComponent() {
   const widgets = useGetWidgets();
   const gizmos = useGetGizmos({ type: 'advanced' });
   const createGizmo = useCreateGizmo();
-  
+
   return (
     <div>
       <h2>Widgets: {widgets.data?.items.length || 0}</h2>
@@ -142,7 +140,7 @@ export function CallbackComponent() {
     const result = useGetWidgets({ limit: 5 });
     return result;
   }, []);
-  
+
   return <div>Callback component</div>;
 }
 

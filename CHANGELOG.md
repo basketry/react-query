@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All existing `useXxx()` hooks continue to work but are marked as deprecated
   - Hooks include migration instructions in JSDoc comments
   - Mutation hooks maintain automatic query invalidation behavior
+- jscodeshift codemod for automated migration from v0.1.x to v0.2.x
+  - Automatically transforms deprecated hooks to new queryOptions pattern
+  - Preserves all parameters, options, and TypeScript types
+  - Includes dry-run mode for safe preview of changes
 
 ### Changed
 
