@@ -11,6 +11,79 @@
 - Type-safe query key builder for cache operations with IntelliSense support
 - Support for infinite queries with Relay-style pagination
 - Full TypeScript support with proper type inference
+- Backwards compatibility with deprecated hook wrappers for smooth migration
+
+## Migration Guide (v0.1.x to v0.2.x)
+
+Starting with v0.2.0, this generator adopts the React Query v5 queryOptions pattern. The old hook wrappers are deprecated but still available for backwards compatibility.
+
+### Query Hooks
+
+```typescript
+// Old pattern (deprecated)
+import { useGetWidgets } from './hooks/widgets';
+const result = useGetWidgets(params);
+
+// New pattern
+import { useQuery } from '@tanstack/react-query';
+import { getWidgetsQueryOptions } from './hooks/widgets';
+const result = useQuery(getWidgetsQueryOptions(params));
+```
+
+### Mutation Hooks
+
+```typescript
+// Old pattern (deprecated)
+import { useCreateWidget } from './hooks/widgets';
+const mutation = useCreateWidget();
+
+// New pattern
+import { useMutation } from '@tanstack/react-query';
+import { createWidgetMutationOptions } from './hooks/widgets';
+const mutation = useMutation(createWidgetMutationOptions());
+```
+
+### Infinite Query Hooks
+
+```typescript
+// Old pattern (deprecated)
+import { useGetWidgetsInfinite } from './hooks/widgets';
+const result = useGetWidgetsInfinite(params);
+
+// New pattern
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { getWidgetsInfiniteQueryOptions } from './hooks/widgets';
+const result = useInfiniteQuery(getWidgetsInfiniteQueryOptions(params));
+```
+
+### Query Key Builder
+
+The new version includes a type-safe query key builder for cache operations:
+
+```typescript
+import { matchQueryKey } from './hooks/query-key-builder';
+
+// Invalidate all queries for a service
+queryClient.invalidateQueries({ queryKey: matchQueryKey('widgets') });
+
+// Invalidate specific operation
+queryClient.invalidateQueries({
+  queryKey: matchQueryKey('widgets', 'getWidgets'),
+});
+
+// Invalidate with specific parameters
+queryClient.invalidateQueries({
+  queryKey: matchQueryKey('widgets', 'getWidgets', { status: 'active' }),
+});
+```
+
+### Benefits of the New Pattern
+
+- Better tree-shaking - only import what you use
+- More flexible - compose with any React Query hook
+- Better TypeScript inference
+- Easier testing - options can be tested without React context
+- Consistent with React Query v5 best practices
 
 ## For contributors:
 

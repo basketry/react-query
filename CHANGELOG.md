@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - TBD
+## [0.2.0-alpha.1] - 2025-07-17
+
+### Added
+
+- Backwards compatibility layer with deprecated hook wrappers
+  - All existing `useXxx()` hooks continue to work but are marked as deprecated
+  - Hooks include migration instructions in JSDoc comments
+  - Mutation hooks maintain automatic query invalidation behavior
+
+### Changed
+
+- Re-added deprecated hooks alongside new queryOptions exports for smoother migration path
+
+## [0.2.0-alpha.0] - 2025-07-17
 
 ### Changed
 
