@@ -90,11 +90,16 @@ queryClient.invalidateQueries({
 We provide a jscodeshift codemod to automatically migrate your codebase:
 
 ```bash
-# Preview changes (dry run)
-./node_modules/@basketry/react-query/codemod/run-migration.sh
+# Using the provided script
+./node_modules/@basketry/react-query/codemod/run-migration.sh        # Preview (dry run)
+./node_modules/@basketry/react-query/codemod/run-migration.sh --apply # Apply changes
 
-# Apply changes
-./node_modules/@basketry/react-query/codemod/run-migration.sh --apply
+# Or using jscodeshift directly
+npx jscodeshift -t ./node_modules/@basketry/react-query/codemod/react-query-v0.2-migration.js \
+  src/ --extensions=ts,tsx --parser=tsx --dry  # Preview (dry run)
+
+npx jscodeshift -t ./node_modules/@basketry/react-query/codemod/react-query-v0.2-migration.js \
+  src/ --extensions=ts,tsx --parser=tsx        # Apply changes
 ```
 
 See [codemod documentation](./codemod/README.md) for more details.
