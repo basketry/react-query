@@ -12,7 +12,14 @@
  * About @basketry/react-query: https://github.com/basketry/react-query#readme
  */
 
-import { mutationOptions, queryOptions } from '@tanstack/react-query';
+import {
+  mutationOptions,
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import type {
   CreateWidgetParams,
   DeleteWidgetFooParams,
@@ -36,6 +43,33 @@ export const createWidgetMutationOptions = () => {
   });
 };
 
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useMutation } from '@tanstack/react-query';
+ * import { createWidgetMutationOptions } from './hooks/widget';
+ *
+ * // Old pattern (deprecated)
+ * const mutation = useCreateWidget();
+ *
+ * // New pattern
+ * const mutation = useMutation(createWidgetMutationOptions());
+ * ```
+ */
+export const useCreateWidget = () => {
+  const queryClient = useQueryClient();
+  const mutationOptions = createWidgetMutationOptions();
+  return useMutation({
+    ...mutationOptions,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['widget'] });
+      mutationOptions.onSuccess?.(data, variables, context);
+    },
+  });
+};
+
 export const deleteWidgetFooMutationOptions = () => {
   const widgetService = getWidgetService();
   return mutationOptions({
@@ -47,6 +81,33 @@ export const deleteWidgetFooMutationOptions = () => {
         throw new Error('Unexpected data error: Failed to get example');
       }
       return res.data;
+    },
+  });
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useMutation } from '@tanstack/react-query';
+ * import { deleteWidgetFooMutationOptions } from './hooks/widget';
+ *
+ * // Old pattern (deprecated)
+ * const mutation = useDeleteWidgetFoo();
+ *
+ * // New pattern
+ * const mutation = useMutation(deleteWidgetFooMutationOptions());
+ * ```
+ */
+export const useDeleteWidgetFoo = () => {
+  const queryClient = useQueryClient();
+  const mutationOptions = deleteWidgetFooMutationOptions();
+  return useMutation({
+    ...mutationOptions,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['widget'] });
+      mutationOptions.onSuccess?.(data, variables, context);
     },
   });
 };
@@ -67,6 +128,44 @@ export const getWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
   });
 };
 
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useQuery } from '@tanstack/react-query';
+ * import { getWidgetFooQueryOptions } from './hooks/widget';
+ *
+ * // Old pattern (deprecated)
+ * const result = useGetWidgetFoo(params);
+ *
+ * // New pattern
+ * const result = useQuery(getWidgetFooQueryOptions(params));
+ * ```
+ */
+export const useGetWidgetFoo = (params: GetWidgetFooParams) => {
+  return useQuery(getWidgetFooQueryOptions(params));
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useSuspenseQuery } from '@tanstack/react-query';
+ * import { getWidgetFooQueryOptions } from './hooks/widget';
+ *
+ * // Old pattern (deprecated)
+ * const result = useSuspenseGetWidgetFoo(params);
+ *
+ * // New pattern
+ * const result = useSuspenseQuery(getWidgetFooQueryOptions(params));
+ * ```
+ */
+export const useSuspenseGetWidgetFoo = (params: GetWidgetFooParams) => {
+  return useSuspenseQuery(getWidgetFooQueryOptions(params));
+};
+
 export const getWidgetsQueryOptions = () => {
   const widgetService = getWidgetService();
   return queryOptions({
@@ -83,6 +182,44 @@ export const getWidgetsQueryOptions = () => {
   });
 };
 
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useQuery } from '@tanstack/react-query';
+ * import { getWidgetsQueryOptions } from './hooks/widget';
+ *
+ * // Old pattern (deprecated)
+ * const result = useGetWidgets(params);
+ *
+ * // New pattern
+ * const result = useQuery(getWidgetsQueryOptions(params));
+ * ```
+ */
+export const useGetWidgets = () => {
+  return useQuery(getWidgetsQueryOptions());
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useSuspenseQuery } from '@tanstack/react-query';
+ * import { getWidgetsQueryOptions } from './hooks/widget';
+ *
+ * // Old pattern (deprecated)
+ * const result = useSuspenseGetWidgets(params);
+ *
+ * // New pattern
+ * const result = useSuspenseQuery(getWidgetsQueryOptions(params));
+ * ```
+ */
+export const useSuspenseGetWidgets = () => {
+  return useSuspenseQuery(getWidgetsQueryOptions());
+};
+
 export const putWidgetMutationOptions = () => {
   const widgetService = getWidgetService();
   return mutationOptions({
@@ -94,6 +231,33 @@ export const putWidgetMutationOptions = () => {
         throw new Error('Unexpected data error: Failed to get example');
       }
       return res.data;
+    },
+  });
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useMutation } from '@tanstack/react-query';
+ * import { putWidgetMutationOptions } from './hooks/widget';
+ *
+ * // Old pattern (deprecated)
+ * const mutation = usePutWidget();
+ *
+ * // New pattern
+ * const mutation = useMutation(putWidgetMutationOptions());
+ * ```
+ */
+export const usePutWidget = () => {
+  const queryClient = useQueryClient();
+  const mutationOptions = putWidgetMutationOptions();
+  return useMutation({
+    ...mutationOptions,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['widget'] });
+      mutationOptions.onSuccess?.(data, variables, context);
     },
   });
 };

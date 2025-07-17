@@ -12,7 +12,11 @@
  * About @basketry/react-query: https://github.com/basketry/react-query#readme
  */
 
-import { queryOptions } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useQuery,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import type { ExhaustiveFormatsParams, ExhaustiveParamsParams } from '../types';
 import { getExhaustiveService } from './context';
 import { CompositeError } from './runtime';
@@ -36,6 +40,46 @@ export const exhaustiveFormatsQueryOptions = (
   });
 };
 
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useQuery } from '@tanstack/react-query';
+ * import { exhaustiveFormatsQueryOptions } from './hooks/exhaustive';
+ *
+ * // Old pattern (deprecated)
+ * const result = useExhaustiveFormats(params);
+ *
+ * // New pattern
+ * const result = useQuery(exhaustiveFormatsQueryOptions(params));
+ * ```
+ */
+export const useExhaustiveFormats = (params?: ExhaustiveFormatsParams) => {
+  return useQuery(exhaustiveFormatsQueryOptions(params));
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useSuspenseQuery } from '@tanstack/react-query';
+ * import { exhaustiveFormatsQueryOptions } from './hooks/exhaustive';
+ *
+ * // Old pattern (deprecated)
+ * const result = useSuspenseExhaustiveFormats(params);
+ *
+ * // New pattern
+ * const result = useSuspenseQuery(exhaustiveFormatsQueryOptions(params));
+ * ```
+ */
+export const useSuspenseExhaustiveFormats = (
+  params?: ExhaustiveFormatsParams,
+) => {
+  return useSuspenseQuery(exhaustiveFormatsQueryOptions(params));
+};
+
 export const exhaustiveParamsQueryOptions = (
   params: ExhaustiveParamsParams,
 ) => {
@@ -53,4 +97,42 @@ export const exhaustiveParamsQueryOptions = (
     },
     select: (data) => data.data,
   });
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useQuery } from '@tanstack/react-query';
+ * import { exhaustiveParamsQueryOptions } from './hooks/exhaustive';
+ *
+ * // Old pattern (deprecated)
+ * const result = useExhaustiveParams(params);
+ *
+ * // New pattern
+ * const result = useQuery(exhaustiveParamsQueryOptions(params));
+ * ```
+ */
+export const useExhaustiveParams = (params: ExhaustiveParamsParams) => {
+  return useQuery(exhaustiveParamsQueryOptions(params));
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useSuspenseQuery } from '@tanstack/react-query';
+ * import { exhaustiveParamsQueryOptions } from './hooks/exhaustive';
+ *
+ * // Old pattern (deprecated)
+ * const result = useSuspenseExhaustiveParams(params);
+ *
+ * // New pattern
+ * const result = useSuspenseQuery(exhaustiveParamsQueryOptions(params));
+ * ```
+ */
+export const useSuspenseExhaustiveParams = (params: ExhaustiveParamsParams) => {
+  return useSuspenseQuery(exhaustiveParamsQueryOptions(params));
 };

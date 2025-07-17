@@ -12,7 +12,14 @@
  * About @basketry/react-query: https://github.com/basketry/react-query#readme
  */
 
-import { mutationOptions, queryOptions } from '@tanstack/react-query';
+import {
+  mutationOptions,
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { getAuthPermutationService } from './context';
 import { CompositeError } from './runtime';
 
@@ -33,6 +40,44 @@ export const allAuthSchemesQueryOptions = () => {
   });
 };
 
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useQuery } from '@tanstack/react-query';
+ * import { all-auth-schemesQueryOptions } from './hooks/authPermutation';
+ *
+ * // Old pattern (deprecated)
+ * const result = useAllAuthSchemes(params);
+ *
+ * // New pattern
+ * const result = useQuery(all-auth-schemesQueryOptions(params));
+ * ```
+ */
+export const useAllAuthSchemes = () => {
+  return useQuery(allAuthSchemesQueryOptions());
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useSuspenseQuery } from '@tanstack/react-query';
+ * import { all-auth-schemesQueryOptions } from './hooks/authPermutation';
+ *
+ * // Old pattern (deprecated)
+ * const result = useSuspenseAllAuthSchemes(params);
+ *
+ * // New pattern
+ * const result = useSuspenseQuery(all-auth-schemesQueryOptions(params));
+ * ```
+ */
+export const useSuspenseAllAuthSchemes = () => {
+  return useSuspenseQuery(allAuthSchemesQueryOptions());
+};
+
 export const comboAuthSchemesMutationOptions = () => {
   const authPermutationService = getAuthPermutationService();
   return mutationOptions({
@@ -44,6 +89,33 @@ export const comboAuthSchemesMutationOptions = () => {
         throw new Error('Unexpected data error: Failed to get example');
       }
       return res.data;
+    },
+  });
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useMutation } from '@tanstack/react-query';
+ * import { combo-auth-schemesMutationOptions } from './hooks/authPermutation';
+ *
+ * // Old pattern (deprecated)
+ * const mutation = useComboAuthSchemes();
+ *
+ * // New pattern
+ * const mutation = useMutation(combo-auth-schemesMutationOptions());
+ * ```
+ */
+export const useComboAuthSchemes = () => {
+  const queryClient = useQueryClient();
+  const mutationOptions = comboAuthSchemesMutationOptions();
+  return useMutation({
+    ...mutationOptions,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['authPermutation'] });
+      mutationOptions.onSuccess?.(data, variables, context);
     },
   });
 };

@@ -103,6 +103,26 @@ export class HookFile extends ModuleBuilder {
         yield `    },`;
         yield `  });`;
         yield `}`;
+
+        // Generate deprecated mutation hook wrapper
+        const useMutation = () => this.tanstack.fn('useMutation');
+        const useQueryClient = () => this.tanstack.fn('useQueryClient');
+        const hookName = this.nameFactory.getHookName(method);
+        const fileName = camel(this.int.name.value);
+
+        yield '';
+        yield* this.buildDeprecationMessage('mutation', method.name.value, hookName, fileName);
+        yield `export const ${hookName} = () => {`;
+        yield `  const queryClient = ${useQueryClient()}();`;
+        yield `  const mutationOptions = ${mutationOptionsName}();`;
+        yield `  return ${useMutation()}({`;
+        yield `    ...mutationOptions,`;
+        yield `    onSuccess: (data, variables, context) => {`;
+        yield `      queryClient.invalidateQueries({ queryKey: ['${this.int.name.value}'] });`;
+        yield `      mutationOptions.onSuccess?.(data, variables, context);`;
+        yield `    },`;
+        yield `  });`;
+        yield `};`;
       }
 
       if (isGet && this.isRelayPaginated(method)) {
@@ -145,6 +165,27 @@ export class HookFile extends ModuleBuilder {
         yield `    ${getPreviousPageParam()},`;
         yield `  });`;
         yield `}`;
+
+        // Generate deprecated infinite query hook wrapper
+        const useInfiniteQuery = () => this.tanstack.fn('useInfiniteQuery');
+        const infiniteHookName = this.nameFactory.getInfiniteHookName(method);
+        const fileName = camel(this.int.name.value);
+
+        yield '';
+        yield* this.buildDeprecationMessage('infinite', method.name.value, infiniteHookName, fileName);
+        yield `export const ${infiniteHookName} = (${paramsExpression}) => {`;
+        yield `  return ${useInfiniteQuery()}(${infiniteOptionsName}(${paramsCallsite}));`;
+        yield `};`;
+
+        // Generate deprecated suspense infinite query hook wrapper
+        const useSuspenseInfiniteQuery = () => this.tanstack.fn('useSuspenseInfiniteQuery');
+        const suspenseInfiniteHookName = this.nameFactory.getSuspenseInfiniteHookName(method);
+
+        yield '';
+        yield* this.buildDeprecationMessage('suspenseInfinite', method.name.value, suspenseInfiniteHookName, fileName);
+        yield `export const ${suspenseInfiniteHookName} = (${paramsExpression}) => {`;
+        yield `  return ${useSuspenseInfiniteQuery()}(${infiniteOptionsName}(${paramsCallsite}));`;
+        yield `};`;
       }
 
       yield '';
@@ -222,6 +263,27 @@ export class HookFile extends ModuleBuilder {
       yield `    select: (data) => data.data,`;
     }
     yield `  });`;
+    yield `};`;
+
+    // Generate deprecated hook wrapper
+    const useQuery = () => this.tanstack.fn('useQuery');
+    const hookName = this.nameFactory.getHookName(method);
+    const fileName = camel(this.int.name.value);
+
+    yield '';
+    yield* this.buildDeprecationMessage('query', method.name.value, hookName, fileName);
+    yield `export const ${hookName} = (${paramsExpression}) => {`;
+    yield `  return ${useQuery()}(${name}(${paramsCallsite}));`;
+    yield `};`;
+
+    // Generate deprecated suspense hook wrapper
+    const useSuspenseQuery = () => this.tanstack.fn('useSuspenseQuery');
+    const suspenseHookName = this.nameFactory.getSuspenseHookName(method);
+
+    yield '';
+    yield* this.buildDeprecationMessage('suspenseQuery', method.name.value, suspenseHookName, fileName);
+    yield `export const ${suspenseHookName} = (${paramsExpression}) => {`;
+    yield `  return ${useSuspenseQuery()}(${name}(${paramsCallsite}));`;
     yield `};`;
   }
 

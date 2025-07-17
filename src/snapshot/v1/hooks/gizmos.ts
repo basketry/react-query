@@ -12,7 +12,14 @@
  * About @basketry/react-query: https://github.com/basketry/react-query#readme
  */
 
-import { mutationOptions, queryOptions } from '@tanstack/react-query';
+import {
+  mutationOptions,
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import type {
   CreateGizmoParams,
   GetGizmosParams,
@@ -42,6 +49,33 @@ export const createGizmoMutationOptions = () => {
 };
 
 /**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useMutation } from '@tanstack/react-query';
+ * import { createGizmoMutationOptions } from './hooks/gizmo';
+ *
+ * // Old pattern (deprecated)
+ * const mutation = useCreateGizmo();
+ *
+ * // New pattern
+ * const mutation = useMutation(createGizmoMutationOptions());
+ * ```
+ */
+export const useCreateGizmo = () => {
+  const queryClient = useQueryClient();
+  const mutationOptions = createGizmoMutationOptions();
+  return useMutation({
+    ...mutationOptions,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['gizmo'] });
+      mutationOptions.onSuccess?.(data, variables, context);
+    },
+  });
+};
+
+/**
  * Only has a summary
  * @deprecated
  */
@@ -62,6 +96,44 @@ export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
   });
 };
 
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useQuery } from '@tanstack/react-query';
+ * import { getGizmosQueryOptions } from './hooks/gizmo';
+ *
+ * // Old pattern (deprecated)
+ * const result = useGetGizmos(params);
+ *
+ * // New pattern
+ * const result = useQuery(getGizmosQueryOptions(params));
+ * ```
+ */
+export const useGetGizmos = (params?: GetGizmosParams) => {
+  return useQuery(getGizmosQueryOptions(params));
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useSuspenseQuery } from '@tanstack/react-query';
+ * import { getGizmosQueryOptions } from './hooks/gizmo';
+ *
+ * // Old pattern (deprecated)
+ * const result = useSuspenseGetGizmos(params);
+ *
+ * // New pattern
+ * const result = useSuspenseQuery(getGizmosQueryOptions(params));
+ * ```
+ */
+export const useSuspenseGetGizmos = (params?: GetGizmosParams) => {
+  return useSuspenseQuery(getGizmosQueryOptions(params));
+};
+
 export const updateGizmoMutationOptions = () => {
   const gizmoService = getGizmoService();
   return mutationOptions({
@@ -77,6 +149,33 @@ export const updateGizmoMutationOptions = () => {
   });
 };
 
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useMutation } from '@tanstack/react-query';
+ * import { updateGizmoMutationOptions } from './hooks/gizmo';
+ *
+ * // Old pattern (deprecated)
+ * const mutation = useUpdateGizmo();
+ *
+ * // New pattern
+ * const mutation = useMutation(updateGizmoMutationOptions());
+ * ```
+ */
+export const useUpdateGizmo = () => {
+  const queryClient = useQueryClient();
+  const mutationOptions = updateGizmoMutationOptions();
+  return useMutation({
+    ...mutationOptions,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['gizmo'] });
+      mutationOptions.onSuccess?.(data, variables, context);
+    },
+  });
+};
+
 export const uploadGizmoMutationOptions = () => {
   const gizmoService = getGizmoService();
   return mutationOptions({
@@ -88,6 +187,33 @@ export const uploadGizmoMutationOptions = () => {
         throw new Error('Unexpected data error: Failed to get example');
       }
       return res.data;
+    },
+  });
+};
+
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useMutation } from '@tanstack/react-query';
+ * import { uploadGizmoMutationOptions } from './hooks/gizmo';
+ *
+ * // Old pattern (deprecated)
+ * const mutation = useUploadGizmo();
+ *
+ * // New pattern
+ * const mutation = useMutation(uploadGizmoMutationOptions());
+ * ```
+ */
+export const useUploadGizmo = () => {
+  const queryClient = useQueryClient();
+  const mutationOptions = uploadGizmoMutationOptions();
+  return useMutation({
+    ...mutationOptions,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['gizmo'] });
+      mutationOptions.onSuccess?.(data, variables, context);
     },
   });
 };
