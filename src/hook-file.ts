@@ -111,7 +111,12 @@ export class HookFile extends ModuleBuilder {
         const fileName = camel(this.int.name.value);
 
         yield '';
-        yield* this.buildDeprecationMessage('mutation', method.name.value, hookName, fileName);
+        yield* this.buildDeprecationMessage(
+          'mutation',
+          method.name.value,
+          hookName,
+          fileName,
+        );
         yield `export const ${hookName} = () => {`;
         yield `  const queryClient = ${useQueryClient()}();`;
         yield `  const mutationOptions = ${mutationOptionsName}();`;
@@ -172,17 +177,29 @@ export class HookFile extends ModuleBuilder {
         const fileName = camel(this.int.name.value);
 
         yield '';
-        yield* this.buildDeprecationMessage('infinite', method.name.value, infiniteHookName, fileName);
+        yield* this.buildDeprecationMessage(
+          'infinite',
+          method.name.value,
+          infiniteHookName,
+          fileName,
+        );
         yield `export const ${infiniteHookName} = (${paramsExpression}) => {`;
         yield `  return ${useInfiniteQuery()}(${infiniteOptionsName}(${paramsCallsite}));`;
         yield `};`;
 
         // Generate deprecated suspense infinite query hook wrapper
-        const useSuspenseInfiniteQuery = () => this.tanstack.fn('useSuspenseInfiniteQuery');
-        const suspenseInfiniteHookName = this.nameFactory.getSuspenseInfiniteHookName(method);
+        const useSuspenseInfiniteQuery = () =>
+          this.tanstack.fn('useSuspenseInfiniteQuery');
+        const suspenseInfiniteHookName =
+          this.nameFactory.getSuspenseInfiniteHookName(method);
 
         yield '';
-        yield* this.buildDeprecationMessage('suspenseInfinite', method.name.value, suspenseInfiniteHookName, fileName);
+        yield* this.buildDeprecationMessage(
+          'suspenseInfinite',
+          method.name.value,
+          suspenseInfiniteHookName,
+          fileName,
+        );
         yield `export const ${suspenseInfiniteHookName} = (${paramsExpression}) => {`;
         yield `  return ${useSuspenseInfiniteQuery()}(${infiniteOptionsName}(${paramsCallsite}));`;
         yield `};`;
@@ -271,7 +288,12 @@ export class HookFile extends ModuleBuilder {
     const fileName = camel(this.int.name.value);
 
     yield '';
-    yield* this.buildDeprecationMessage('query', method.name.value, hookName, fileName);
+    yield* this.buildDeprecationMessage(
+      'query',
+      method.name.value,
+      hookName,
+      fileName,
+    );
     yield `export const ${hookName} = (${paramsExpression}) => {`;
     yield `  return ${useQuery()}(${name}(${paramsCallsite}));`;
     yield `};`;
@@ -281,7 +303,12 @@ export class HookFile extends ModuleBuilder {
     const suspenseHookName = this.nameFactory.getSuspenseHookName(method);
 
     yield '';
-    yield* this.buildDeprecationMessage('suspenseQuery', method.name.value, suspenseHookName, fileName);
+    yield* this.buildDeprecationMessage(
+      'suspenseQuery',
+      method.name.value,
+      suspenseHookName,
+      fileName,
+    );
     yield `export const ${suspenseHookName} = (${paramsExpression}) => {`;
     yield `  return ${useSuspenseQuery()}(${name}(${paramsCallsite}));`;
     yield `};`;
@@ -399,11 +426,26 @@ export class HookFile extends ModuleBuilder {
     hookName: string,
     fileName: string,
   ): string[] {
+    const pluralize = require('pluralize');
+    const pluralFileName = pluralize(fileName);
     const lines: string[] = [];
     lines.push('/**');
-    lines.push(
-      ' * @deprecated This hook is deprecated and will be removed in a future version.',
-    );
+
+    // Use appropriate deprecation message based on hook type
+    if (hookType === 'mutation') {
+      lines.push(
+        ' * @deprecated This mutation hook is deprecated and will be removed in a future version.',
+      );
+    } else if (hookType === 'infinite' || hookType === 'suspenseInfinite') {
+      lines.push(
+        ' * @deprecated This infinite query hook is deprecated and will be removed in a future version.',
+      );
+    } else {
+      lines.push(
+        ' * @deprecated This hook is deprecated and will be removed in a future version.',
+      );
+    }
+
     lines.push(' * Please use the new query options pattern instead:');
     lines.push(' * ');
     lines.push(' * ```typescript');
@@ -412,7 +454,7 @@ export class HookFile extends ModuleBuilder {
       case 'query':
         lines.push(" * import { useQuery } from '@tanstack/react-query';");
         lines.push(
-          ` * import { ${methodName}QueryOptions } from './hooks/${fileName}';`,
+          ` * import { ${methodName}QueryOptions } from './hooks/${pluralFileName}';`,
         );
         lines.push(' * ');
         lines.push(' * // Old pattern (deprecated)');
@@ -428,7 +470,7 @@ export class HookFile extends ModuleBuilder {
           " * import { useSuspenseQuery } from '@tanstack/react-query';",
         );
         lines.push(
-          ` * import { ${methodName}QueryOptions } from './hooks/${fileName}';`,
+          ` * import { ${methodName}QueryOptions } from './hooks/${pluralFileName}';`,
         );
         lines.push(' * ');
         lines.push(' * // Old pattern (deprecated)');
@@ -442,7 +484,7 @@ export class HookFile extends ModuleBuilder {
       case 'mutation':
         lines.push(" * import { useMutation } from '@tanstack/react-query';");
         lines.push(
-          ` * import { ${methodName}MutationOptions } from './hooks/${fileName}';`,
+          ` * import { ${methodName}MutationOptions } from './hooks/${pluralFileName}';`,
         );
         lines.push(' * ');
         lines.push(' * // Old pattern (deprecated)');
@@ -458,7 +500,7 @@ export class HookFile extends ModuleBuilder {
           " * import { useInfiniteQuery } from '@tanstack/react-query';",
         );
         lines.push(
-          ` * import { ${methodName}InfiniteQueryOptions } from './hooks/${fileName}';`,
+          ` * import { ${methodName}InfiniteQueryOptions } from './hooks/${pluralFileName}';`,
         );
         lines.push(' * ');
         lines.push(' * // Old pattern (deprecated)');
@@ -474,7 +516,7 @@ export class HookFile extends ModuleBuilder {
           " * import { useSuspenseInfiniteQuery } from '@tanstack/react-query';",
         );
         lines.push(
-          ` * import { ${methodName}InfiniteQueryOptions } from './hooks/${fileName}';`,
+          ` * import { ${methodName}InfiniteQueryOptions } from './hooks/${pluralFileName}';`,
         );
         lines.push(' * ');
         lines.push(' * // Old pattern (deprecated)');

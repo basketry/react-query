@@ -46,7 +46,7 @@ export const exhaustiveFormatsQueryOptions = (
  *
  * ```typescript
  * import { useQuery } from '@tanstack/react-query';
- * import { exhaustiveFormatsQueryOptions } from './hooks/exhaustive';
+ * import { exhaustiveFormatsQueryOptions } from './hooks/exhaustives';
  *
  * // Old pattern (deprecated)
  * const result = useExhaustiveFormats(params);
@@ -65,7 +65,7 @@ export const useExhaustiveFormats = (params?: ExhaustiveFormatsParams) => {
  *
  * ```typescript
  * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { exhaustiveFormatsQueryOptions } from './hooks/exhaustive';
+ * import { exhaustiveFormatsQueryOptions } from './hooks/exhaustives';
  *
  * // Old pattern (deprecated)
  * const result = useSuspenseExhaustiveFormats(params);
@@ -105,7 +105,7 @@ export const exhaustiveParamsQueryOptions = (
  *
  * ```typescript
  * import { useQuery } from '@tanstack/react-query';
- * import { exhaustiveParamsQueryOptions } from './hooks/exhaustive';
+ * import { exhaustiveParamsQueryOptions } from './hooks/exhaustives';
  *
  * // Old pattern (deprecated)
  * const result = useExhaustiveParams(params);
@@ -124,7 +124,7 @@ export const useExhaustiveParams = (params: ExhaustiveParamsParams) => {
  *
  * ```typescript
  * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { exhaustiveParamsQueryOptions } from './hooks/exhaustive';
+ * import { exhaustiveParamsQueryOptions } from './hooks/exhaustives';
  *
  * // Old pattern (deprecated)
  * const result = useSuspenseExhaustiveParams(params);

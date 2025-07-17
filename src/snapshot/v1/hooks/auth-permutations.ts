@@ -46,7 +46,7 @@ export const allAuthSchemesQueryOptions = () => {
  *
  * ```typescript
  * import { useQuery } from '@tanstack/react-query';
- * import { all-auth-schemesQueryOptions } from './hooks/authPermutation';
+ * import { all-auth-schemesQueryOptions } from './hooks/authPermutations';
  *
  * // Old pattern (deprecated)
  * const result = useAllAuthSchemes(params);
@@ -65,7 +65,7 @@ export const useAllAuthSchemes = () => {
  *
  * ```typescript
  * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { all-auth-schemesQueryOptions } from './hooks/authPermutation';
+ * import { all-auth-schemesQueryOptions } from './hooks/authPermutations';
  *
  * // Old pattern (deprecated)
  * const result = useSuspenseAllAuthSchemes(params);
@@ -94,12 +94,12 @@ export const comboAuthSchemesMutationOptions = () => {
 };
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
+ * @deprecated This mutation hook is deprecated and will be removed in a future version.
  * Please use the new query options pattern instead:
  *
  * ```typescript
  * import { useMutation } from '@tanstack/react-query';
- * import { combo-auth-schemesMutationOptions } from './hooks/authPermutation';
+ * import { combo-auth-schemesMutationOptions } from './hooks/authPermutations';
  *
  * // Old pattern (deprecated)
  * const mutation = useComboAuthSchemes();

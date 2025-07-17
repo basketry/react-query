@@ -49,12 +49,12 @@ export const createGizmoMutationOptions = () => {
 };
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
+ * @deprecated This mutation hook is deprecated and will be removed in a future version.
  * Please use the new query options pattern instead:
  *
  * ```typescript
  * import { useMutation } from '@tanstack/react-query';
- * import { createGizmoMutationOptions } from './hooks/gizmo';
+ * import { createGizmoMutationOptions } from './hooks/gizmos';
  *
  * // Old pattern (deprecated)
  * const mutation = useCreateGizmo();
@@ -102,7 +102,7 @@ export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
  *
  * ```typescript
  * import { useQuery } from '@tanstack/react-query';
- * import { getGizmosQueryOptions } from './hooks/gizmo';
+ * import { getGizmosQueryOptions } from './hooks/gizmos';
  *
  * // Old pattern (deprecated)
  * const result = useGetGizmos(params);
@@ -121,7 +121,7 @@ export const useGetGizmos = (params?: GetGizmosParams) => {
  *
  * ```typescript
  * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { getGizmosQueryOptions } from './hooks/gizmo';
+ * import { getGizmosQueryOptions } from './hooks/gizmos';
  *
  * // Old pattern (deprecated)
  * const result = useSuspenseGetGizmos(params);
@@ -150,12 +150,12 @@ export const updateGizmoMutationOptions = () => {
 };
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
+ * @deprecated This mutation hook is deprecated and will be removed in a future version.
  * Please use the new query options pattern instead:
  *
  * ```typescript
  * import { useMutation } from '@tanstack/react-query';
- * import { updateGizmoMutationOptions } from './hooks/gizmo';
+ * import { updateGizmoMutationOptions } from './hooks/gizmos';
  *
  * // Old pattern (deprecated)
  * const mutation = useUpdateGizmo();
@@ -192,12 +192,12 @@ export const uploadGizmoMutationOptions = () => {
 };
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
+ * @deprecated This mutation hook is deprecated and will be removed in a future version.
  * Please use the new query options pattern instead:
  *
  * ```typescript
  * import { useMutation } from '@tanstack/react-query';
- * import { uploadGizmoMutationOptions } from './hooks/gizmo';
+ * import { uploadGizmoMutationOptions } from './hooks/gizmos';
  *
  * // Old pattern (deprecated)
  * const mutation = useUploadGizmo();

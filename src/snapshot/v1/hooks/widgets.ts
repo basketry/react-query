@@ -44,12 +44,12 @@ export const createWidgetMutationOptions = () => {
 };
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
+ * @deprecated This mutation hook is deprecated and will be removed in a future version.
  * Please use the new query options pattern instead:
  *
  * ```typescript
  * import { useMutation } from '@tanstack/react-query';
- * import { createWidgetMutationOptions } from './hooks/widget';
+ * import { createWidgetMutationOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
  * const mutation = useCreateWidget();
@@ -86,12 +86,12 @@ export const deleteWidgetFooMutationOptions = () => {
 };
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
+ * @deprecated This mutation hook is deprecated and will be removed in a future version.
  * Please use the new query options pattern instead:
  *
  * ```typescript
  * import { useMutation } from '@tanstack/react-query';
- * import { deleteWidgetFooMutationOptions } from './hooks/widget';
+ * import { deleteWidgetFooMutationOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
  * const mutation = useDeleteWidgetFoo();
@@ -134,7 +134,7 @@ export const getWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
  *
  * ```typescript
  * import { useQuery } from '@tanstack/react-query';
- * import { getWidgetFooQueryOptions } from './hooks/widget';
+ * import { getWidgetFooQueryOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
  * const result = useGetWidgetFoo(params);
@@ -153,7 +153,7 @@ export const useGetWidgetFoo = (params: GetWidgetFooParams) => {
  *
  * ```typescript
  * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { getWidgetFooQueryOptions } from './hooks/widget';
+ * import { getWidgetFooQueryOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
  * const result = useSuspenseGetWidgetFoo(params);
@@ -188,7 +188,7 @@ export const getWidgetsQueryOptions = () => {
  *
  * ```typescript
  * import { useQuery } from '@tanstack/react-query';
- * import { getWidgetsQueryOptions } from './hooks/widget';
+ * import { getWidgetsQueryOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
  * const result = useGetWidgets(params);
@@ -207,7 +207,7 @@ export const useGetWidgets = () => {
  *
  * ```typescript
  * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { getWidgetsQueryOptions } from './hooks/widget';
+ * import { getWidgetsQueryOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
  * const result = useSuspenseGetWidgets(params);
@@ -236,12 +236,12 @@ export const putWidgetMutationOptions = () => {
 };
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
+ * @deprecated This mutation hook is deprecated and will be removed in a future version.
  * Please use the new query options pattern instead:
  *
  * ```typescript
  * import { useMutation } from '@tanstack/react-query';
- * import { putWidgetMutationOptions } from './hooks/widget';
+ * import { putWidgetMutationOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
  * const mutation = usePutWidget();
