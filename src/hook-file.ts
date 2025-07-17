@@ -325,4 +325,108 @@ export class HookFile extends ModuleBuilder {
 
     return true;
   }
+
+  private buildDeprecationMessage(
+    hookType:
+      | 'query'
+      | 'suspenseQuery'
+      | 'mutation'
+      | 'infinite'
+      | 'suspenseInfinite',
+    methodName: string,
+    hookName: string,
+    fileName: string,
+  ): string[] {
+    const lines: string[] = [];
+    lines.push('/**');
+    lines.push(
+      ' * @deprecated This hook is deprecated and will be removed in a future version.',
+    );
+    lines.push(' * Please use the new query options pattern instead:');
+    lines.push(' * ');
+    lines.push(' * ```typescript');
+
+    switch (hookType) {
+      case 'query':
+        lines.push(" * import { useQuery } from '@tanstack/react-query';");
+        lines.push(
+          ` * import { ${methodName}QueryOptions } from './hooks/${fileName}';`,
+        );
+        lines.push(' * ');
+        lines.push(' * // Old pattern (deprecated)');
+        lines.push(` * const result = ${hookName}(params);`);
+        lines.push(' * ');
+        lines.push(' * // New pattern');
+        lines.push(
+          ` * const result = useQuery(${methodName}QueryOptions(params));`,
+        );
+        break;
+      case 'suspenseQuery':
+        lines.push(
+          " * import { useSuspenseQuery } from '@tanstack/react-query';",
+        );
+        lines.push(
+          ` * import { ${methodName}QueryOptions } from './hooks/${fileName}';`,
+        );
+        lines.push(' * ');
+        lines.push(' * // Old pattern (deprecated)');
+        lines.push(` * const result = ${hookName}(params);`);
+        lines.push(' * ');
+        lines.push(' * // New pattern');
+        lines.push(
+          ` * const result = useSuspenseQuery(${methodName}QueryOptions(params));`,
+        );
+        break;
+      case 'mutation':
+        lines.push(" * import { useMutation } from '@tanstack/react-query';");
+        lines.push(
+          ` * import { ${methodName}MutationOptions } from './hooks/${fileName}';`,
+        );
+        lines.push(' * ');
+        lines.push(' * // Old pattern (deprecated)');
+        lines.push(` * const mutation = ${hookName}();`);
+        lines.push(' * ');
+        lines.push(' * // New pattern');
+        lines.push(
+          ` * const mutation = useMutation(${methodName}MutationOptions());`,
+        );
+        break;
+      case 'infinite':
+        lines.push(
+          " * import { useInfiniteQuery } from '@tanstack/react-query';",
+        );
+        lines.push(
+          ` * import { ${methodName}InfiniteQueryOptions } from './hooks/${fileName}';`,
+        );
+        lines.push(' * ');
+        lines.push(' * // Old pattern (deprecated)');
+        lines.push(` * const result = ${hookName}(params);`);
+        lines.push(' * ');
+        lines.push(' * // New pattern');
+        lines.push(
+          ` * const result = useInfiniteQuery(${methodName}InfiniteQueryOptions(params));`,
+        );
+        break;
+      case 'suspenseInfinite':
+        lines.push(
+          " * import { useSuspenseInfiniteQuery } from '@tanstack/react-query';",
+        );
+        lines.push(
+          ` * import { ${methodName}InfiniteQueryOptions } from './hooks/${fileName}';`,
+        );
+        lines.push(' * ');
+        lines.push(' * // Old pattern (deprecated)');
+        lines.push(` * const result = ${hookName}(params);`);
+        lines.push(' * ');
+        lines.push(' * // New pattern');
+        lines.push(
+          ` * const result = useSuspenseInfiniteQuery(${methodName}InfiniteQueryOptions(params));`,
+        );
+        break;
+    }
+
+    lines.push(' * ```');
+    lines.push(' */');
+    return lines;
+  }
 }
