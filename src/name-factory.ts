@@ -28,19 +28,47 @@ export class NameFactory {
     return camel(`use_${this.buildServiceName(int)}`);
   }
 
-  getHookName(method: Method): string {
-    return camel(`use_${method.name.value}`);
+  getHookName(method: Method, httpVerb?: string): string {
+    const name = method.name.value;
+    
+    // If it's a GET method and the name starts with "get", remove the "Get" prefix
+    if (httpVerb === 'get' && name.toLowerCase().startsWith('get')) {
+      return camel(`use_${name.slice(3)}`);
+    }
+    
+    return camel(`use_${name}`);
   }
 
-  getSuspenseHookName(method: Method): string {
-    return camel(`use_suspense_${method.name.value}`);
+  getSuspenseHookName(method: Method, httpVerb?: string): string {
+    const name = method.name.value;
+    
+    // If it's a GET method and the name starts with "get", remove the "Get" prefix
+    if (httpVerb === 'get' && name.toLowerCase().startsWith('get')) {
+      return camel(`use_suspense_${name.slice(3)}`);
+    }
+    
+    return camel(`use_suspense_${name}`);
   }
 
-  getInfiniteHookName(method: Method): string {
-    return camel(`use_${method.name.value}_infinite`);
+  getInfiniteHookName(method: Method, httpVerb?: string): string {
+    const name = method.name.value;
+    
+    // If it's a GET method and the name starts with "get", remove the "Get" prefix
+    if (httpVerb === 'get' && name.toLowerCase().startsWith('get')) {
+      return camel(`use_${name.slice(3)}_infinite`);
+    }
+    
+    return camel(`use_${name}_infinite`);
   }
 
-  getSuspenseInfiniteHookName(method: Method): string {
-    return camel(`use_suspense_${method.name.value}_infinite`);
+  getSuspenseInfiniteHookName(method: Method, httpVerb?: string): string {
+    const name = method.name.value;
+    
+    // If it's a GET method and the name starts with "get", remove the "Get" prefix
+    if (httpVerb === 'get' && name.toLowerCase().startsWith('get')) {
+      return camel(`use_suspense_${name.slice(3)}_infinite`);
+    }
+    
+    return camel(`use_suspense_${name}_infinite`);
   }
 }

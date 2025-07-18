@@ -423,8 +423,8 @@ describe('HookFile', () => {
       const content = widgetsFile!.contents;
 
       // Check that deprecated hooks are generated
-      expect(content).toContain('export const useGetWidget');
-      expect(content).toContain('export const useSuspenseGetWidget');
+      expect(content).toContain('export const useWidget');
+      expect(content).toContain('export const useSuspenseWidget');
 
       // Check for deprecation messages
       expect(content).toContain('@deprecated');
@@ -433,17 +433,17 @@ describe('HookFile', () => {
       );
       expect(content).toContain('// Old pattern (deprecated)');
       expect(content).toContain('// New pattern');
-      expect(content).toContain('const result = useGetWidget');
+      expect(content).toContain('const result = useWidget');
       expect(content).toContain(
         'const result = useQuery(getWidgetQueryOptions',
       );
 
       // Check that hooks use the query options
       expect(content).toMatch(
-        /useGetWidget[^}]+useQuery\(getWidgetQueryOptions/s,
+        /useWidget[^}]+useQuery\(getWidgetQueryOptions/s,
       );
       expect(content).toMatch(
-        /useSuspenseGetWidget[^}]+useSuspenseQuery\(getWidgetQueryOptions/s,
+        /useSuspenseWidget[^}]+useSuspenseQuery\(getWidgetQueryOptions/s,
       );
     });
 
@@ -741,8 +741,8 @@ describe('HookFile', () => {
       const content = widgetsFile!.contents;
 
       // Check that deprecated infinite hooks are generated
-      expect(content).toContain('export const useGetWidgetsInfinite');
-      expect(content).toContain('export const useSuspenseGetWidgetsInfinite');
+      expect(content).toContain('export const useWidgetsInfinite');
+      expect(content).toContain('export const useSuspenseWidgetsInfinite');
 
       // Check for deprecation messages
       expect(content).toContain('@deprecated');
@@ -750,10 +750,10 @@ describe('HookFile', () => {
 
       // Check that hooks use the infinite query options
       expect(content).toMatch(
-        /useGetWidgetsInfinite[^}]+useInfiniteQuery\(getWidgetsInfiniteQueryOptions/s,
+        /useWidgetsInfinite[^}]+useInfiniteQuery\(getWidgetsInfiniteQueryOptions/s,
       );
       expect(content).toMatch(
-        /useSuspenseGetWidgetsInfinite[^}]+useSuspenseInfiniteQuery\(getWidgetsInfiniteQueryOptions/s,
+        /useSuspenseWidgetsInfinite[^}]+useSuspenseInfiniteQuery\(getWidgetsInfiniteQueryOptions/s,
       );
     });
 
@@ -846,7 +846,7 @@ describe('HookFile', () => {
       const deprecationBlocks = content.match(/\/\*\*[\s\S]*?\*\//g) || [];
       const queryDeprecation = deprecationBlocks.find(
         (block) =>
-          block.includes('useGetWidget') && !block.includes('Suspense'),
+          block.includes('useWidget') && !block.includes('Suspense'),
       );
 
       expect(queryDeprecation).toBeDefined();

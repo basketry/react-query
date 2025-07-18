@@ -105,13 +105,13 @@ export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
  * import { getGizmosQueryOptions } from './hooks/gizmos';
  *
  * // Old pattern (deprecated)
- * const result = useGetGizmos(params);
+ * const result = useGizmos(params);
  *
  * // New pattern
  * const result = useQuery(getGizmosQueryOptions(params));
  * ```
  */
-export const useGetGizmos = (params?: GetGizmosParams) => {
+export const useGizmos = (params?: GetGizmosParams) => {
   return useQuery(getGizmosQueryOptions(params));
 };
 
@@ -124,13 +124,13 @@ export const useGetGizmos = (params?: GetGizmosParams) => {
  * import { getGizmosQueryOptions } from './hooks/gizmos';
  *
  * // Old pattern (deprecated)
- * const result = useSuspenseGetGizmos(params);
+ * const result = useSuspenseGizmos(params);
  *
  * // New pattern
  * const result = useSuspenseQuery(getGizmosQueryOptions(params));
  * ```
  */
-export const useSuspenseGetGizmos = (params?: GetGizmosParams) => {
+export const useSuspenseGizmos = (params?: GetGizmosParams) => {
   return useSuspenseQuery(getGizmosQueryOptions(params));
 };
 

@@ -107,7 +107,7 @@ export class HookFile extends ModuleBuilder {
         // Generate deprecated mutation hook wrapper
         const useMutation = () => this.tanstack.fn('useMutation');
         const useQueryClient = () => this.tanstack.fn('useQueryClient');
-        const hookName = this.nameFactory.getHookName(method);
+        const hookName = this.nameFactory.getHookName(method, httpMethod?.verb.value);
         const fileName = camel(this.int.name.value);
 
         yield '';
@@ -173,7 +173,7 @@ export class HookFile extends ModuleBuilder {
 
         // Generate deprecated infinite query hook wrapper
         const useInfiniteQuery = () => this.tanstack.fn('useInfiniteQuery');
-        const infiniteHookName = this.nameFactory.getInfiniteHookName(method);
+        const infiniteHookName = this.nameFactory.getInfiniteHookName(method, httpMethod?.verb.value);
         const fileName = camel(this.int.name.value);
 
         yield '';
@@ -191,7 +191,7 @@ export class HookFile extends ModuleBuilder {
         const useSuspenseInfiniteQuery = () =>
           this.tanstack.fn('useSuspenseInfiniteQuery');
         const suspenseInfiniteHookName =
-          this.nameFactory.getSuspenseInfiniteHookName(method);
+          this.nameFactory.getSuspenseInfiniteHookName(method, httpMethod?.verb.value);
 
         yield '';
         yield* this.buildDeprecationMessage(
@@ -235,6 +235,7 @@ export class HookFile extends ModuleBuilder {
     const queryOptions = () => this.tanstack.fn('queryOptions');
     const CompositeError = () => this.runtime.fn('CompositeError');
     const type = (t: string) => this.types.type(t);
+    const httpMethod = getHttpMethodByName(this.service, method.name.value);
 
     const serviceName = camel(`${this.int.name.value}_service`);
     const serviceGetterName = camel(`get_${this.int.name.value}_service`);
@@ -284,7 +285,7 @@ export class HookFile extends ModuleBuilder {
 
     // Generate deprecated hook wrapper
     const useQuery = () => this.tanstack.fn('useQuery');
-    const hookName = this.nameFactory.getHookName(method);
+    const hookName = this.nameFactory.getHookName(method, httpMethod?.verb.value);
     const fileName = camel(this.int.name.value);
 
     yield '';
@@ -300,7 +301,7 @@ export class HookFile extends ModuleBuilder {
 
     // Generate deprecated suspense hook wrapper
     const useSuspenseQuery = () => this.tanstack.fn('useSuspenseQuery');
-    const suspenseHookName = this.nameFactory.getSuspenseHookName(method);
+    const suspenseHookName = this.nameFactory.getSuspenseHookName(method, httpMethod?.verb.value);
 
     yield '';
     yield* this.buildDeprecationMessage(

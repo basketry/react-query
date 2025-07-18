@@ -137,13 +137,13 @@ export const getWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
  * import { getWidgetFooQueryOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
- * const result = useGetWidgetFoo(params);
+ * const result = useWidgetFoo(params);
  *
  * // New pattern
  * const result = useQuery(getWidgetFooQueryOptions(params));
  * ```
  */
-export const useGetWidgetFoo = (params: GetWidgetFooParams) => {
+export const useWidgetFoo = (params: GetWidgetFooParams) => {
   return useQuery(getWidgetFooQueryOptions(params));
 };
 
@@ -156,13 +156,13 @@ export const useGetWidgetFoo = (params: GetWidgetFooParams) => {
  * import { getWidgetFooQueryOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
- * const result = useSuspenseGetWidgetFoo(params);
+ * const result = useSuspenseWidgetFoo(params);
  *
  * // New pattern
  * const result = useSuspenseQuery(getWidgetFooQueryOptions(params));
  * ```
  */
-export const useSuspenseGetWidgetFoo = (params: GetWidgetFooParams) => {
+export const useSuspenseWidgetFoo = (params: GetWidgetFooParams) => {
   return useSuspenseQuery(getWidgetFooQueryOptions(params));
 };
 
@@ -191,13 +191,13 @@ export const getWidgetsQueryOptions = () => {
  * import { getWidgetsQueryOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
- * const result = useGetWidgets(params);
+ * const result = useWidgets(params);
  *
  * // New pattern
  * const result = useQuery(getWidgetsQueryOptions(params));
  * ```
  */
-export const useGetWidgets = () => {
+export const useWidgets = () => {
   return useQuery(getWidgetsQueryOptions());
 };
 
@@ -210,13 +210,13 @@ export const useGetWidgets = () => {
  * import { getWidgetsQueryOptions } from './hooks/widgets';
  *
  * // Old pattern (deprecated)
- * const result = useSuspenseGetWidgets(params);
+ * const result = useSuspenseWidgets(params);
  *
  * // New pattern
  * const result = useSuspenseQuery(getWidgetsQueryOptions(params));
  * ```
  */
-export const useSuspenseGetWidgets = () => {
+export const useSuspenseWidgets = () => {
   return useSuspenseQuery(getWidgetsQueryOptions());
 };
 

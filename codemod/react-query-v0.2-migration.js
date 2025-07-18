@@ -23,24 +23,38 @@ module.exports = function transformer(fileInfo, api) {
   // Helper to convert hook name to options name
   function getOptionsName(hookName, type) {
     // Remove 'use' prefix and convert to camelCase
-    const baseName = hookName.substring(3);
+    let baseName = hookName.substring(3);
+    
+    // Handle suspense prefix
+    if (baseName.startsWith('Suspense')) {
+      baseName = baseName.substring(8); // Remove 'Suspense'
+    }
+    
+    // For query hooks, check if we need to add back "get" prefix
+    // If the hook was "useWidgets" it came from "getWidgets", so options should be "getWidgetsQueryOptions"
+    if ((type === 'query' || type === 'suspense' || type === 'infinite' || type === 'suspenseInfinite') && 
+        !baseName.toLowerCase().startsWith('get') && 
+        !hookName.match(/use(Create|Update|Delete|Add|Remove|Set|Save|Post|Put|Patch)/)) {
+      baseName = 'get' + baseName;
+    }
+    
     const camelCaseName = baseName.charAt(0).toLowerCase() + baseName.slice(1);
 
     switch (type) {
       case 'infinite':
-        // useGetWidgetsInfinite -> getWidgetsInfiniteQueryOptions
+        // useWidgetsInfinite -> getWidgetsInfiniteQueryOptions
         return camelCaseName.replace(/Infinite$/, '') + 'InfiniteQueryOptions';
       case 'suspenseInfinite':
-        // useSuspenseGetWidgetsInfinite -> getWidgetsInfiniteQueryOptions
+        // useSuspenseWidgetsInfinite -> getWidgetsInfiniteQueryOptions
         return camelCaseName.replace(/Infinite$/, '') + 'InfiniteQueryOptions';
       case 'suspense':
-        // useSuspenseGetWidgets -> getWidgetsQueryOptions
+        // useSuspenseWidgets -> getWidgetsQueryOptions
         return camelCaseName + 'QueryOptions';
       case 'mutation':
         // useCreateWidget -> createWidgetMutationOptions
         return camelCaseName + 'MutationOptions';
       default:
-        // useGetWidgets -> getWidgetsQueryOptions
+        // useWidgets -> getWidgetsQueryOptions
         return camelCaseName + 'QueryOptions';
     }
   }
