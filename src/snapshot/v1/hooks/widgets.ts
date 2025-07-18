@@ -15,7 +15,9 @@
 import {
   mutationOptions,
   queryOptions,
+  type UndefinedInitialDataOptions,
   useMutation,
+  type UseMutationOptions,
   useQuery,
   useQueryClient,
   useSuspenseQuery,
@@ -24,6 +26,8 @@ import type {
   CreateWidgetParams,
   DeleteWidgetFooParams,
   GetWidgetFooParams,
+  PutWidgetParams,
+  Widget,
 } from '../types';
 import { getWidgetService } from './context';
 import { CompositeError } from './runtime';
@@ -58,7 +62,12 @@ export const createWidgetMutationOptions = () => {
  * const mutation = useMutation(createWidgetMutationOptions());
  * ```
  */
-export const useCreateWidget = () => {
+export const useCreateWidget = (
+  options?: Omit<
+    UseMutationOptions<void, Error, CreateWidgetParams, unknown>,
+    'mutationFn'
+  >,
+) => {
   const queryClient = useQueryClient();
   const mutationOptions = createWidgetMutationOptions();
   return useMutation({
@@ -67,6 +76,7 @@ export const useCreateWidget = () => {
       queryClient.invalidateQueries({ queryKey: ['widget'] });
       mutationOptions.onSuccess?.(data, variables, context);
     },
+    ...options,
   });
 };
 
@@ -100,7 +110,12 @@ export const deleteWidgetFooMutationOptions = () => {
  * const mutation = useMutation(deleteWidgetFooMutationOptions());
  * ```
  */
-export const useDeleteWidgetFoo = () => {
+export const useDeleteWidgetFoo = (
+  options?: Omit<
+    UseMutationOptions<void, Error, DeleteWidgetFooParams, unknown>,
+    'mutationFn'
+  >,
+) => {
   const queryClient = useQueryClient();
   const mutationOptions = deleteWidgetFooMutationOptions();
   return useMutation({
@@ -109,6 +124,55 @@ export const useDeleteWidgetFoo = () => {
       queryClient.invalidateQueries({ queryKey: ['widget'] });
       mutationOptions.onSuccess?.(data, variables, context);
     },
+    ...options,
+  });
+};
+
+export const putWidgetMutationOptions = () => {
+  const widgetService = getWidgetService();
+  return mutationOptions({
+    mutationFn: async () => {
+      const res = await widgetService.putWidget();
+      if (res.errors.length) {
+        throw new CompositeError(res.errors);
+      } else if (!res.data) {
+        throw new Error('Unexpected data error: Failed to get example');
+      }
+      return res.data;
+    },
+  });
+};
+
+/**
+ * @deprecated This mutation hook is deprecated and will be removed in a future version.
+ * Please use the new query options pattern instead:
+ *
+ * ```typescript
+ * import { useMutation } from '@tanstack/react-query';
+ * import { putWidgetMutationOptions } from './hooks/widgets';
+ *
+ * // Old pattern (deprecated)
+ * const mutation = usePutWidget();
+ *
+ * // New pattern
+ * const mutation = useMutation(putWidgetMutationOptions());
+ * ```
+ */
+export const usePutWidget = (
+  options?: Omit<
+    UseMutationOptions<void, Error, PutWidgetParams, unknown>,
+    'mutationFn'
+  >,
+) => {
+  const queryClient = useQueryClient();
+  const mutationOptions = putWidgetMutationOptions();
+  return useMutation({
+    ...mutationOptions,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['widget'] });
+      mutationOptions.onSuccess?.(data, variables, context);
+    },
+    ...options,
   });
 };
 
@@ -143,8 +207,15 @@ export const getWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
  * const result = useQuery(getWidgetFooQueryOptions(params));
  * ```
  */
-export const useWidgetFoo = (params: GetWidgetFooParams) => {
-  return useQuery(getWidgetFooQueryOptions(params));
+export const useWidgetFoo = (
+  params: GetWidgetFooParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<Widget, Error, Widget | undefined, string[]>,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = getWidgetFooQueryOptions(params);
+  return useQuery({ ...defaultOptions, ...options });
 };
 
 /**
@@ -162,8 +233,15 @@ export const useWidgetFoo = (params: GetWidgetFooParams) => {
  * const result = useSuspenseQuery(getWidgetFooQueryOptions(params));
  * ```
  */
-export const useSuspenseWidgetFoo = (params: GetWidgetFooParams) => {
-  return useSuspenseQuery(getWidgetFooQueryOptions(params));
+export const useSuspenseWidgetFoo = (
+  params: GetWidgetFooParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<Widget, Error, Widget | undefined, string[]>,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = getWidgetFooQueryOptions(params);
+  return useSuspenseQuery({ ...defaultOptions, ...options });
 };
 
 export const getWidgetsQueryOptions = () => {
@@ -197,8 +275,14 @@ export const getWidgetsQueryOptions = () => {
  * const result = useQuery(getWidgetsQueryOptions(params));
  * ```
  */
-export const useWidgets = () => {
-  return useQuery(getWidgetsQueryOptions());
+export const useWidgets = (
+  options?: Omit<
+    UndefinedInitialDataOptions<Widget, Error, Widget | undefined, string[]>,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = getWidgetsQueryOptions();
+  return useQuery({ ...defaultOptions, ...options });
 };
 
 /**
@@ -216,48 +300,12 @@ export const useWidgets = () => {
  * const result = useSuspenseQuery(getWidgetsQueryOptions(params));
  * ```
  */
-export const useSuspenseWidgets = () => {
-  return useSuspenseQuery(getWidgetsQueryOptions());
-};
-
-export const putWidgetMutationOptions = () => {
-  const widgetService = getWidgetService();
-  return mutationOptions({
-    mutationFn: async () => {
-      const res = await widgetService.putWidget();
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
-      return res.data;
-    },
-  });
-};
-
-/**
- * @deprecated This mutation hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useMutation } from '@tanstack/react-query';
- * import { putWidgetMutationOptions } from './hooks/widgets';
- *
- * // Old pattern (deprecated)
- * const mutation = usePutWidget();
- *
- * // New pattern
- * const mutation = useMutation(putWidgetMutationOptions());
- * ```
- */
-export const usePutWidget = () => {
-  const queryClient = useQueryClient();
-  const mutationOptions = putWidgetMutationOptions();
-  return useMutation({
-    ...mutationOptions,
-    onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: ['widget'] });
-      mutationOptions.onSuccess?.(data, variables, context);
-    },
-  });
+export const useSuspenseWidgets = (
+  options?: Omit<
+    UndefinedInitialDataOptions<Widget, Error, Widget | undefined, string[]>,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = getWidgetsQueryOptions();
+  return useSuspenseQuery({ ...defaultOptions, ...options });
 };

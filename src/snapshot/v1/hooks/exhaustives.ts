@@ -14,6 +14,7 @@
 
 import {
   queryOptions,
+  type UndefinedInitialDataOptions,
   useQuery,
   useSuspenseQuery,
 } from '@tanstack/react-query';
@@ -55,8 +56,20 @@ export const exhaustiveFormatsQueryOptions = (
  * const result = useQuery(exhaustiveFormatsQueryOptions(params));
  * ```
  */
-export const useExhaustiveFormats = (params?: ExhaustiveFormatsParams) => {
-  return useQuery(exhaustiveFormatsQueryOptions(params));
+export const useExhaustiveFormats = (
+  params?: ExhaustiveFormatsParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      void,
+      Error,
+      void | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = exhaustiveFormatsQueryOptions(params);
+  return useQuery({ ...defaultOptions, ...options });
 };
 
 /**
@@ -68,16 +81,26 @@ export const useExhaustiveFormats = (params?: ExhaustiveFormatsParams) => {
  * import { exhaustiveFormatsQueryOptions } from './hooks/exhaustives';
  *
  * // Old pattern (deprecated)
- * const result = useSuspenseExhaustiveFormats(params);
+ * const result = useExhaustiveFormats(params);
  *
  * // New pattern
  * const result = useSuspenseQuery(exhaustiveFormatsQueryOptions(params));
  * ```
  */
-export const useSuspenseExhaustiveFormats = (
+export const useExhaustiveFormats = (
   params?: ExhaustiveFormatsParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      void,
+      Error,
+      void | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
 ) => {
-  return useSuspenseQuery(exhaustiveFormatsQueryOptions(params));
+  const defaultOptions = exhaustiveFormatsQueryOptions(params);
+  return useSuspenseQuery({ ...defaultOptions, ...options });
 };
 
 export const exhaustiveParamsQueryOptions = (
@@ -114,8 +137,20 @@ export const exhaustiveParamsQueryOptions = (
  * const result = useQuery(exhaustiveParamsQueryOptions(params));
  * ```
  */
-export const useExhaustiveParams = (params: ExhaustiveParamsParams) => {
-  return useQuery(exhaustiveParamsQueryOptions(params));
+export const useExhaustiveParams = (
+  params: ExhaustiveParamsParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      void,
+      Error,
+      void | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = exhaustiveParamsQueryOptions(params);
+  return useQuery({ ...defaultOptions, ...options });
 };
 
 /**
@@ -127,12 +162,24 @@ export const useExhaustiveParams = (params: ExhaustiveParamsParams) => {
  * import { exhaustiveParamsQueryOptions } from './hooks/exhaustives';
  *
  * // Old pattern (deprecated)
- * const result = useSuspenseExhaustiveParams(params);
+ * const result = useExhaustiveParams(params);
  *
  * // New pattern
  * const result = useSuspenseQuery(exhaustiveParamsQueryOptions(params));
  * ```
  */
-export const useSuspenseExhaustiveParams = (params: ExhaustiveParamsParams) => {
-  return useSuspenseQuery(exhaustiveParamsQueryOptions(params));
+export const useExhaustiveParams = (
+  params: ExhaustiveParamsParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      void,
+      Error,
+      void | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = exhaustiveParamsQueryOptions(params);
+  return useSuspenseQuery({ ...defaultOptions, ...options });
 };

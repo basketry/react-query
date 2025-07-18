@@ -2,6 +2,7 @@ import {
   getHttpMethodByName,
   getTypeByName,
   HttpMethod,
+  HttpParameter,
   HttpPath,
   Interface,
   isRequired,
@@ -46,6 +47,17 @@ export class HookFile extends ModuleBuilder {
   ];
 
   *body(): Iterable<string> {
+    const useMutation = () => this.tanstack.fn('useMutation');
+    const useQuery = () => this.tanstack.fn('useQuery');
+    const useQueryClient = () => this.tanstack.fn('useQueryClient');
+    const useInfiniteQuery = () => this.tanstack.fn('useInfiniteQuery');
+    const useSuspenseInfiniteQuery = () =>
+      this.tanstack.fn('useSuspenseInfiniteQuery');
+    const useSuspenseQuery = () => this.tanstack.fn('useSuspenseQuery');
+    const UseMutationOptions = () => this.tanstack.type('UseMutationOptions');
+    const UndefinedInitialDataOptions = () =>
+      this.tanstack.type('UndefinedInitialDataOptions');
+
     const applyPageParam = () => this.runtime.fn('applyPageParam');
     const CompositeError = () => this.runtime.fn('CompositeError');
     const getInitialPageParam = () => this.runtime.fn('getInitialPageParam');
@@ -55,10 +67,11 @@ export class HookFile extends ModuleBuilder {
 
     const type = (t: string) => this.types.type(t);
 
-    const serviceName = this.nameFactory.buildServiceName(this.int);
+    const serviceName = camel(`${this.int.name.value}_service`);
+    const serviceHookName = camel(`use_${this.int.name.value}_service`);
 
     for (const method of [...this.int.methods].sort((a, b) =>
-      a.name.value.localeCompare(b.name.value),
+      this.getHookName(a).localeCompare(this.getHookName(b)),
     )) {
       const paramsType = from(buildParamsType(method));
       const httpMethod = getHttpMethodByName(this.service, method.name.value);
@@ -73,8 +86,87 @@ export class HookFile extends ModuleBuilder {
 
       const isGet = httpMethod?.verb.value === 'get' && !!httpPath;
 
+      // Generate new query options exports (v0.2.0 feature)
       if (isGet) {
-        yield* this.generateQueryOptions(method);
+        yield* this.generateQueryOptions(method, httpPath);
+      }
+
+      // Generate original hooks with options parameters (v0.1.0 compatibility)
+      if (isGet) {
+        const name = this.getHookName(method);
+        const suspenseName = this.getHookName(method, { suspense: true });
+        const queryOptionsName = this.nameFactory.buildQueryOptionsName(method);
+        const paramsCallsite = method.parameters.length ? 'params' : '';
+
+        const returnType = getTypeByName(
+          this.service,
+          method.returnType?.typeName.value,
+        );
+        const dataType = getTypeByName(
+          this.service,
+          returnType?.properties.find((p) => p.name.value === 'data')?.typeName
+            .value,
+        );
+
+        const skipSelect =
+          returnType &&
+          returnType.properties.some(
+            (prop) =>
+              prop.name.value !== 'data' && prop.name.value !== 'errors',
+          );
+
+        const returnTypeName = returnType ? buildTypeName(returnType) : 'void';
+        let dataTypeName: string;
+        if (skipSelect) {
+          dataTypeName = returnTypeName;
+        } else {
+          dataTypeName = dataType ? buildTypeName(dataType) : 'void';
+        }
+
+        const queryParams = httpMethod?.parameters.filter((p) =>
+          isCacheParam(p, true),
+        );
+        const queryParamsType = queryParams.length
+          ? 'string | Record<string, string | number | boolean>'
+          : 'string';
+
+        const optionsExpression = `options?: Omit<${UndefinedInitialDataOptions()}<${type(
+          returnTypeName,
+        )}, Error, ${type(
+          dataTypeName,
+        )} | undefined, (${queryParamsType})[]>,'queryKey' | 'queryFn' | 'select'>`;
+
+        // Generate the regular hook
+        yield '';
+        yield* this.buildDeprecationMessage(
+          'query',
+          method.name.value,
+          name,
+          camel(this.int.name.value),
+        );
+        yield `export const ${name} = (${[
+          paramsExpression,
+          optionsExpression,
+        ].filter(Boolean).join(', ')}) => {`;
+        yield `  const defaultOptions = ${queryOptionsName}(${paramsCallsite});`;
+        yield `  return ${useQuery()}({...defaultOptions, ...options});`;
+        yield `};`;
+
+        // Generate the suspense hook
+        yield '';
+        yield* this.buildDeprecationMessage(
+          'suspenseQuery',
+          method.name.value,
+          suspenseName,
+          camel(this.int.name.value),
+        );
+        yield `export const ${suspenseName} = (${[
+          paramsExpression,
+          optionsExpression,
+        ].filter(Boolean).join(', ')}) => {`;
+        yield `  const defaultOptions = ${queryOptionsName}(${paramsCallsite});`;
+        yield `  return ${useSuspenseQuery()}({...defaultOptions, ...options});`;
+        yield `};`;
       } else if (httpPath) {
         const mutationOptions = () => this.tanstack.fn('mutationOptions');
         const paramsCallsite = method.parameters.length ? 'params' : '';
@@ -104,23 +196,32 @@ export class HookFile extends ModuleBuilder {
         yield `  });`;
         yield `}`;
 
-        // Generate deprecated mutation hook wrapper
-        const useMutation = () => this.tanstack.fn('useMutation');
-        const useQueryClient = () => this.tanstack.fn('useQueryClient');
-        const hookName = this.nameFactory.getHookName(
-          method,
-          httpMethod?.verb.value,
+        // Generate original mutation hook with options parameter
+        const hookName = this.getHookName(method);
+        const returnType = getTypeByName(
+          this.service,
+          method.returnType?.typeName.value,
         );
-        const fileName = camel(this.int.name.value);
+        const dataType = getTypeByName(
+          this.service,
+          returnType?.properties.find((p) => p.name.value === 'data')?.typeName
+            .value,
+        );
+
+        const typeName = dataType ? buildTypeName(dataType) : 'void';
+
+        const optionsExpression = `options?: Omit<${UseMutationOptions()}<${type(
+          typeName,
+        )}, Error, ${type(paramsType)}, unknown>, 'mutationFn'>`;
 
         yield '';
         yield* this.buildDeprecationMessage(
           'mutation',
           method.name.value,
           hookName,
-          fileName,
+          camel(this.int.name.value),
         );
-        yield `export const ${hookName} = () => {`;
+        yield `export const ${hookName} = (${optionsExpression}) => {`;
         yield `  const queryClient = ${useQueryClient()}();`;
         yield `  const mutationOptions = ${mutationOptionsName}();`;
         yield `  return ${useMutation()}({`;
@@ -129,6 +230,7 @@ export class HookFile extends ModuleBuilder {
         yield `      queryClient.invalidateQueries({ queryKey: ['${this.int.name.value}'] });`;
         yield `      mutationOptions.onSuccess?.(data, variables, context);`;
         yield `    },`;
+        yield `    ...options,`;
         yield `  });`;
         yield `};`;
       }
@@ -140,8 +242,10 @@ export class HookFile extends ModuleBuilder {
         const paramsCallsite = method.parameters.length
           ? `${applyPageParam()}(params${q ? '?? {}' : ''}, pageParam)`
           : '';
+        const infiniteName = this.getHookName(method, { infinite: true });
         const serviceGetterName = camel(`get_${this.int.name.value}_service`);
 
+        // Export the infinite query options (v0.2.0 feature)
         const infiniteOptionsName = camel(
           `${method.name.value}_infinite_query_options`,
         );
@@ -156,10 +260,9 @@ export class HookFile extends ModuleBuilder {
           serviceGetterName,
         )}();`;
         yield `  return ${infiniteQueryOptions()}({`;
-        yield `    queryKey: ${this.buildQueryKey(method, {
-          includeRelayParams: false,
-          infinite: true,
-        })},`;
+        yield `    queryKey: ['${this.int.name.value}', '${method.name.value}', ${
+          method.parameters.length ? 'params || {}' : '{}'
+        }, {infinite: true}] as const,`;
         yield `    queryFn: async ({ pageParam }: ${PageParam()}) => {`;
         yield `      const res = await ${methodExpression}(${paramsCallsite});`;
         yield `      if (res.errors.length) { throw new ${CompositeError()}(res.errors); }`;
@@ -174,44 +277,62 @@ export class HookFile extends ModuleBuilder {
         yield `  });`;
         yield `}`;
 
-        // Generate deprecated infinite query hook wrapper
-        const useInfiniteQuery = () => this.tanstack.fn('useInfiniteQuery');
-        const infiniteHookName = this.nameFactory.getInfiniteHookName(
-          method,
-          httpMethod?.verb.value,
+        // Generate private infinite options hook for backward compatibility
+        const infiniteOptionsHook = camel(
+          `${this.getHookName(method, { infinite: true })}_query_options`,
         );
-        const fileName = camel(this.int.name.value);
 
+        yield '';
+        yield `function ${infiniteOptionsHook}(${paramsExpression}) {`;
+        yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}();`;
+        yield `  return {`;
+        yield `    queryKey: ['${this.int.name.value}', '${method.name.value}', ${
+          method.parameters.length ? 'params || {}' : '{}'
+        }, {infinite: true}] as const,`;
+        yield `    queryFn: async ({ pageParam }: ${PageParam()}) => {`;
+        yield `      const res = await ${methodExpression}(${paramsCallsite});`;
+        yield `      if (res.errors.length) { throw new ${CompositeError()}(res.errors); }`;
+        yield `      return res;`;
+        yield `    },`;
+        yield* this.buildInfiniteSelectFn(method);
+        yield `    initialPageParam: ${getInitialPageParam()}(params${
+          q ? '?? {}' : ''
+        }),`;
+        yield `    ${getNextPageParam()},`;
+        yield `    ${getPreviousPageParam()},`;
+        yield `  };`;
+        yield `}`;
+
+        // Generate deprecated infinite query hook
         yield '';
         yield* this.buildDeprecationMessage(
           'infinite',
           method.name.value,
-          infiniteHookName,
-          fileName,
+          infiniteName,
+          camel(this.int.name.value),
         );
-        yield `export const ${infiniteHookName} = (${paramsExpression}) => {`;
-        yield `  return ${useInfiniteQuery()}(${infiniteOptionsName}(${paramsCallsite}));`;
-        yield `};`;
+        yield `export const ${infiniteName} = (${paramsExpression}) => {`;
+        yield `  const options = ${infiniteOptionsHook}(params);`;
+        yield `  return ${useInfiniteQuery()}(options);`;
+        yield `}`;
 
-        // Generate deprecated suspense infinite query hook wrapper
-        const useSuspenseInfiniteQuery = () =>
-          this.tanstack.fn('useSuspenseInfiniteQuery');
-        const suspenseInfiniteHookName =
-          this.nameFactory.getSuspenseInfiniteHookName(
-            method,
-            httpMethod?.verb.value,
-          );
+        // Generate deprecated suspense infinite query hook
+        const suspenseInfiniteName = this.getHookName(method, {
+          suspense: true,
+          infinite: true,
+        });
 
         yield '';
         yield* this.buildDeprecationMessage(
           'suspenseInfinite',
           method.name.value,
-          suspenseInfiniteHookName,
-          fileName,
+          suspenseInfiniteName,
+          camel(this.int.name.value),
         );
-        yield `export const ${suspenseInfiniteHookName} = (${paramsExpression}) => {`;
-        yield `  return ${useSuspenseInfiniteQuery()}(${infiniteOptionsName}(${paramsCallsite}));`;
-        yield `};`;
+        yield `export const ${suspenseInfiniteName} = (${paramsExpression}) => {`;
+        yield `  const options = ${infiniteOptionsHook}(params);`;
+        yield `  return ${useSuspenseInfiniteQuery()}(options);`;
+        yield `}`;
       }
 
       yield '';
@@ -240,7 +361,10 @@ export class HookFile extends ModuleBuilder {
     }),`;
   }
 
-  private *generateQueryOptions(method: Method): Iterable<string> {
+  private *generateQueryOptions(
+    method: Method,
+    httpPath: HttpPath,
+  ): Iterable<string> {
     const queryOptions = () => this.tanstack.fn('queryOptions');
     const CompositeError = () => this.runtime.fn('CompositeError');
     const type = (t: string) => this.types.type(t);
@@ -291,43 +415,6 @@ export class HookFile extends ModuleBuilder {
     }
     yield `  });`;
     yield `};`;
-
-    // Generate deprecated hook wrapper
-    const useQuery = () => this.tanstack.fn('useQuery');
-    const hookName = this.nameFactory.getHookName(
-      method,
-      httpMethod?.verb.value,
-    );
-    const fileName = camel(this.int.name.value);
-
-    yield '';
-    yield* this.buildDeprecationMessage(
-      'query',
-      method.name.value,
-      hookName,
-      fileName,
-    );
-    yield `export const ${hookName} = (${paramsExpression}) => {`;
-    yield `  return ${useQuery()}(${name}(${paramsCallsite}));`;
-    yield `};`;
-
-    // Generate deprecated suspense hook wrapper
-    const useSuspenseQuery = () => this.tanstack.fn('useSuspenseQuery');
-    const suspenseHookName = this.nameFactory.getSuspenseHookName(
-      method,
-      httpMethod?.verb.value,
-    );
-
-    yield '';
-    yield* this.buildDeprecationMessage(
-      'suspenseQuery',
-      method.name.value,
-      suspenseHookName,
-      fileName,
-    );
-    yield `export const ${suspenseHookName} = (${paramsExpression}) => {`;
-    yield `  return ${useSuspenseQuery()}(${name}(${paramsCallsite}));`;
-    yield `};`;
   }
 
   private getHttpPath(
@@ -349,22 +436,70 @@ export class HookFile extends ModuleBuilder {
   }
 
   private buildQueryKey(
+    httpPath: HttpPath,
     method: Method,
     options?: { includeRelayParams?: boolean; infinite?: boolean },
   ): string {
+    const compact = () => this.runtime.fn('compact');
+    const resourceKey = this.buildResourceKey(httpPath, method);
     const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
 
-    const queryKey = [
-      `'${this.int.name.value}'`,
-      `'${method.name.value}'`,
-      method.parameters.length ? `params${q} || {}` : '{}',
-    ];
+    const httpMethod = getHttpMethodByName(this.service, method.name.value);
+    const queryParams = httpMethod?.parameters.filter((p) =>
+      isCacheParam(p, options?.includeRelayParams ?? false),
+    );
 
-    if (options?.infinite) {
-      queryKey.push(`{ infinite: true }`);
+    const queryKey = [resourceKey];
+
+    let couldHaveNullQueryParams = false;
+    if (queryParams?.length) {
+      couldHaveNullQueryParams = queryParams.every((hp) => {
+        const param = method.parameters.find(
+          (p) => camel(p.name.value) === camel(hp.name.value),
+        );
+        return param ? !isRequired(param) : true;
+      });
+      queryKey.push(
+        `${compact()}({${queryParams
+          .map((p) => `${p.name.value}: params${q}.${p.name.value}`)
+          .join(',')}})`,
+      );
     }
 
-    return `[${queryKey.join(', ')}] as const`;
+    if (options?.infinite) {
+      queryKey.push('{infinite: true}');
+    }
+
+    return `[${queryKey.join(', ')}]${
+      couldHaveNullQueryParams ? '.filter(Boolean)' : ''
+    }`;
+  }
+
+  private buildResourceKey(
+    httpPath: HttpPath,
+    method: Method,
+    options?: { skipTerminalParams: boolean },
+  ): string {
+    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
+
+    const parts = httpPath.path.value.split('/');
+
+    if (options?.skipTerminalParams) {
+      while (isPathParam(parts[parts.length - 1])) {
+        parts.pop();
+      }
+    }
+
+    const path = parts.filter(Boolean).map((part) => {
+      if (part.startsWith('{') && part.endsWith('}')) {
+        const param = part.slice(1, -1);
+        return `\${params${q}.${camel(param)}}`;
+      }
+
+      return part;
+    });
+
+    return `\`/${path.join('/')}\``;
   }
 
   private isRelayPaginated(method: Method): boolean {
@@ -429,6 +564,28 @@ export class HookFile extends ModuleBuilder {
     }
 
     return true;
+  }
+
+  // Private method to generate hook names with same logic as v0.1.0
+  private getHookName(
+    method: Method,
+    options?: { infinite?: boolean; suspense?: boolean },
+  ): string {
+    const name = method.name.value;
+    const httpMethod = getHttpMethodByName(this.service, name);
+
+    if (
+      httpMethod?.verb.value === 'get' &&
+      name.toLocaleLowerCase().startsWith('get')
+    ) {
+      return camel(
+        `use_${options?.suspense ? 'suspense_' : ''}${name.slice(3)}${
+          options?.infinite ? '_infinite' : ''
+        }`,
+      );
+    }
+
+    return camel(`use_${name}`);
   }
 
   private buildDeprecationMessage(
@@ -549,4 +706,26 @@ export class HookFile extends ModuleBuilder {
     lines.push(' */');
     return lines;
   }
+}
+
+function isPathParam(part: string): boolean {
+  return part.startsWith('{') && part.endsWith('}');
+}
+
+function isCacheParam(
+  param: HttpParameter,
+  includeRelayParams: boolean,
+): boolean {
+  if (param.in.value !== 'query') return false;
+
+  if (!includeRelayParams) {
+    return (
+      camel(param.name.value.toLowerCase()) !== 'first' &&
+      camel(param.name.value.toLowerCase()) !== 'after' &&
+      camel(param.name.value.toLowerCase()) !== 'last' &&
+      camel(param.name.value.toLowerCase()) !== 'before'
+    );
+  }
+
+  return true;
 }

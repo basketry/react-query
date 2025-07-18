@@ -15,11 +15,14 @@
 import {
   mutationOptions,
   queryOptions,
+  type UndefinedInitialDataOptions,
   useMutation,
+  type UseMutationOptions,
   useQuery,
   useQueryClient,
   useSuspenseQuery,
 } from '@tanstack/react-query';
+import type { ComboAuthSchemesParams } from '../types';
 import { getAuthPermutationService } from './context';
 import { CompositeError } from './runtime';
 
@@ -55,8 +58,14 @@ export const allAuthSchemesQueryOptions = () => {
  * const result = useQuery(all-auth-schemesQueryOptions(params));
  * ```
  */
-export const useAllAuthSchemes = () => {
-  return useQuery(allAuthSchemesQueryOptions());
+export const useAllAuthSchemes = (
+  options?: Omit<
+    UndefinedInitialDataOptions<void, Error, void | undefined, string[]>,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = allAuthSchemesQueryOptions();
+  return useQuery({ ...defaultOptions, ...options });
 };
 
 /**
@@ -68,14 +77,20 @@ export const useAllAuthSchemes = () => {
  * import { all-auth-schemesQueryOptions } from './hooks/authPermutations';
  *
  * // Old pattern (deprecated)
- * const result = useSuspenseAllAuthSchemes(params);
+ * const result = useAllAuthSchemes(params);
  *
  * // New pattern
  * const result = useSuspenseQuery(all-auth-schemesQueryOptions(params));
  * ```
  */
-export const useSuspenseAllAuthSchemes = () => {
-  return useSuspenseQuery(allAuthSchemesQueryOptions());
+export const useAllAuthSchemes = (
+  options?: Omit<
+    UndefinedInitialDataOptions<void, Error, void | undefined, string[]>,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = allAuthSchemesQueryOptions();
+  return useSuspenseQuery({ ...defaultOptions, ...options });
 };
 
 export const comboAuthSchemesMutationOptions = () => {
@@ -108,7 +123,12 @@ export const comboAuthSchemesMutationOptions = () => {
  * const mutation = useMutation(combo-auth-schemesMutationOptions());
  * ```
  */
-export const useComboAuthSchemes = () => {
+export const useComboAuthSchemes = (
+  options?: Omit<
+    UseMutationOptions<void, Error, ComboAuthSchemesParams, unknown>,
+    'mutationFn'
+  >,
+) => {
   const queryClient = useQueryClient();
   const mutationOptions = comboAuthSchemesMutationOptions();
   return useMutation({
@@ -117,5 +137,6 @@ export const useComboAuthSchemes = () => {
       queryClient.invalidateQueries({ queryKey: ['authPermutation'] });
       mutationOptions.onSuccess?.(data, variables, context);
     },
+    ...options,
   });
 };

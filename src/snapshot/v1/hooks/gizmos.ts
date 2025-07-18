@@ -15,7 +15,9 @@
 import {
   mutationOptions,
   queryOptions,
+  type UndefinedInitialDataOptions,
   useMutation,
+  type UseMutationOptions,
   useQuery,
   useQueryClient,
   useSuspenseQuery,
@@ -23,6 +25,8 @@ import {
 import type {
   CreateGizmoParams,
   GetGizmosParams,
+  Gizmo,
+  GizmosResponse,
   UpdateGizmoParams,
   UploadGizmoParams,
 } from '../types';
@@ -63,7 +67,12 @@ export const createGizmoMutationOptions = () => {
  * const mutation = useMutation(createGizmoMutationOptions());
  * ```
  */
-export const useCreateGizmo = () => {
+export const useCreateGizmo = (
+  options?: Omit<
+    UseMutationOptions<void, Error, CreateGizmoParams, unknown>,
+    'mutationFn'
+  >,
+) => {
   const queryClient = useQueryClient();
   const mutationOptions = createGizmoMutationOptions();
   return useMutation({
@@ -72,6 +81,7 @@ export const useCreateGizmo = () => {
       queryClient.invalidateQueries({ queryKey: ['gizmo'] });
       mutationOptions.onSuccess?.(data, variables, context);
     },
+    ...options,
   });
 };
 
@@ -111,8 +121,20 @@ export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
  * const result = useQuery(getGizmosQueryOptions(params));
  * ```
  */
-export const useGizmos = (params?: GetGizmosParams) => {
-  return useQuery(getGizmosQueryOptions(params));
+export const useGizmos = (
+  params?: GetGizmosParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      GizmosResponse,
+      Error,
+      Gizmo | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = getGizmosQueryOptions(params);
+  return useQuery({ ...defaultOptions, ...options });
 };
 
 /**
@@ -130,8 +152,20 @@ export const useGizmos = (params?: GetGizmosParams) => {
  * const result = useSuspenseQuery(getGizmosQueryOptions(params));
  * ```
  */
-export const useSuspenseGizmos = (params?: GetGizmosParams) => {
-  return useSuspenseQuery(getGizmosQueryOptions(params));
+export const useSuspenseGizmos = (
+  params?: GetGizmosParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      GizmosResponse,
+      Error,
+      Gizmo | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) => {
+  const defaultOptions = getGizmosQueryOptions(params);
+  return useSuspenseQuery({ ...defaultOptions, ...options });
 };
 
 export const updateGizmoMutationOptions = () => {
@@ -164,7 +198,12 @@ export const updateGizmoMutationOptions = () => {
  * const mutation = useMutation(updateGizmoMutationOptions());
  * ```
  */
-export const useUpdateGizmo = () => {
+export const useUpdateGizmo = (
+  options?: Omit<
+    UseMutationOptions<void, Error, UpdateGizmoParams, unknown>,
+    'mutationFn'
+  >,
+) => {
   const queryClient = useQueryClient();
   const mutationOptions = updateGizmoMutationOptions();
   return useMutation({
@@ -173,6 +212,7 @@ export const useUpdateGizmo = () => {
       queryClient.invalidateQueries({ queryKey: ['gizmo'] });
       mutationOptions.onSuccess?.(data, variables, context);
     },
+    ...options,
   });
 };
 
@@ -206,7 +246,12 @@ export const uploadGizmoMutationOptions = () => {
  * const mutation = useMutation(uploadGizmoMutationOptions());
  * ```
  */
-export const useUploadGizmo = () => {
+export const useUploadGizmo = (
+  options?: Omit<
+    UseMutationOptions<void, Error, UploadGizmoParams, unknown>,
+    'mutationFn'
+  >,
+) => {
   const queryClient = useQueryClient();
   const mutationOptions = uploadGizmoMutationOptions();
   return useMutation({
@@ -215,5 +260,6 @@ export const useUploadGizmo = () => {
       queryClient.invalidateQueries({ queryKey: ['gizmo'] });
       mutationOptions.onSuccess?.(data, variables, context);
     },
+    ...options,
   });
 };
