@@ -24,20 +24,27 @@ module.exports = function transformer(fileInfo, api) {
   function getOptionsName(hookName, type) {
     // Remove 'use' prefix and convert to camelCase
     let baseName = hookName.substring(3);
-    
+
     // Handle suspense prefix
     if (baseName.startsWith('Suspense')) {
       baseName = baseName.substring(8); // Remove 'Suspense'
     }
-    
+
     // For query hooks, check if we need to add back "get" prefix
     // If the hook was "useWidgets" it came from "getWidgets", so options should be "getWidgetsQueryOptions"
-    if ((type === 'query' || type === 'suspense' || type === 'infinite' || type === 'suspenseInfinite') && 
-        !baseName.toLowerCase().startsWith('get') && 
-        !hookName.match(/use(Create|Update|Delete|Add|Remove|Set|Save|Post|Put|Patch)/)) {
+    if (
+      (type === 'query' ||
+        type === 'suspense' ||
+        type === 'infinite' ||
+        type === 'suspenseInfinite') &&
+      !baseName.toLowerCase().startsWith('get') &&
+      !hookName.match(
+        /use(Create|Update|Delete|Add|Remove|Set|Save|Post|Put|Patch)/,
+      )
+    ) {
       baseName = 'get' + baseName;
     }
-    
+
     const camelCaseName = baseName.charAt(0).toLowerCase() + baseName.slice(1);
 
     switch (type) {

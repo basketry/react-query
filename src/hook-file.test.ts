@@ -439,9 +439,7 @@ describe('HookFile', () => {
       );
 
       // Check that hooks use the query options
-      expect(content).toMatch(
-        /useWidget[^}]+useQuery\(getWidgetQueryOptions/s,
-      );
+      expect(content).toMatch(/useWidget[^}]+useQuery\(getWidgetQueryOptions/s);
       expect(content).toMatch(
         /useSuspenseWidget[^}]+useSuspenseQuery\(getWidgetQueryOptions/s,
       );
@@ -845,8 +843,7 @@ describe('HookFile', () => {
       // Verify migration example structure
       const deprecationBlocks = content.match(/\/\*\*[\s\S]*?\*\//g) || [];
       const queryDeprecation = deprecationBlocks.find(
-        (block) =>
-          block.includes('useWidget') && !block.includes('Suspense'),
+        (block) => block.includes('useWidget') && !block.includes('Suspense'),
       );
 
       expect(queryDeprecation).toBeDefined();

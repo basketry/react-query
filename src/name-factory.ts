@@ -30,45 +30,45 @@ export class NameFactory {
 
   getHookName(method: Method, httpVerb?: string): string {
     const name = method.name.value;
-    
+
     // If it's a GET method and the name starts with "get", remove the "Get" prefix
     if (httpVerb === 'get' && name.toLowerCase().startsWith('get')) {
       return camel(`use_${name.slice(3)}`);
     }
-    
+
     return camel(`use_${name}`);
   }
 
   getSuspenseHookName(method: Method, httpVerb?: string): string {
     const name = method.name.value;
-    
+
     // If it's a GET method and the name starts with "get", remove the "Get" prefix
     if (httpVerb === 'get' && name.toLowerCase().startsWith('get')) {
       return camel(`use_suspense_${name.slice(3)}`);
     }
-    
+
     return camel(`use_suspense_${name}`);
   }
 
   getInfiniteHookName(method: Method, httpVerb?: string): string {
     const name = method.name.value;
-    
+
     // If it's a GET method and the name starts with "get", remove the "Get" prefix
     if (httpVerb === 'get' && name.toLowerCase().startsWith('get')) {
       return camel(`use_${name.slice(3)}_infinite`);
     }
-    
+
     return camel(`use_${name}_infinite`);
   }
 
   getSuspenseInfiniteHookName(method: Method, httpVerb?: string): string {
     const name = method.name.value;
-    
+
     // If it's a GET method and the name starts with "get", remove the "Get" prefix
     if (httpVerb === 'get' && name.toLowerCase().startsWith('get')) {
       return camel(`use_suspense_${name.slice(3)}_infinite`);
     }
-    
+
     return camel(`use_suspense_${name}_infinite`);
   }
 }
