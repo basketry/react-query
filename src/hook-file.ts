@@ -75,7 +75,7 @@ export class HookFile extends ModuleBuilder {
 
     if (isGet) {
       yield* this.generateQueryOptions(method, httpPath);
-      
+
       if (this.isRelayPaginated(method)) {
         yield* this.generateInfiniteQueryOptions(method, httpPath);
       }
@@ -120,9 +120,7 @@ export class HookFile extends ModuleBuilder {
     const suspenseName = this.getHookName(method, { suspense: true });
     const infiniteName = this.getHookName(method, { infinite: true });
     const paramsType = from(buildParamsType(method));
-    const q = method.parameters.every((param) => !isRequired(param))
-      ? '?'
-      : '';
+    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
 
     const paramsExpression = method.parameters.length
       ? `params${q}: ${type(paramsType)}`
@@ -130,64 +128,52 @@ export class HookFile extends ModuleBuilder {
 
     if (isGet) {
       // Generate legacy query hooks
-      yield* this.generateLegacyQueryHooks(
-        method,
-        httpPath,
-        {
-          name,
-          suspenseName,
-          paramsType,
-          paramsExpression,
-          q,
-          serviceName,
-          serviceHookName,
-          type,
-          useQuery,
-          useSuspenseQuery,
-          UndefinedInitialDataOptions,
-        }
-      );
+      yield* this.generateLegacyQueryHooks(method, httpPath, {
+        name,
+        suspenseName,
+        paramsType,
+        paramsExpression,
+        q,
+        serviceName,
+        serviceHookName,
+        type,
+        useQuery,
+        useSuspenseQuery,
+        UndefinedInitialDataOptions,
+      });
     } else {
       // Generate legacy mutation hook
-      yield* this.generateLegacyMutationHook(
-        method,
-        httpPath,
-        {
-          name,
-          paramsType,
-          paramsExpression,
-          serviceName,
-          serviceHookName,
-          type,
-          useMutation,
-          useQueryClient,
-          UseMutationOptions,
-          CompositeError,
-        }
-      );
+      yield* this.generateLegacyMutationHook(method, httpPath, {
+        name,
+        paramsType,
+        paramsExpression,
+        serviceName,
+        serviceHookName,
+        type,
+        useMutation,
+        useQueryClient,
+        UseMutationOptions,
+        CompositeError,
+      });
     }
 
     if (isGet && this.isRelayPaginated(method)) {
       // Generate legacy infinite hooks
-      yield* this.generateLegacyInfiniteHooks(
-        method,
-        httpPath,
-        {
-          infiniteName,
-          paramsExpression,
-          q,
-          serviceName,
-          serviceHookName,
-          applyPageParam,
-          useInfiniteQuery,
-          useSuspenseInfiniteQuery,
-          CompositeError,
-          getInitialPageParam,
-          getNextPageParam,
-          getPreviousPageParam,
-          PageParam,
-        }
-      );
+      yield* this.generateLegacyInfiniteHooks(method, httpPath, {
+        infiniteName,
+        paramsExpression,
+        q,
+        serviceName,
+        serviceHookName,
+        applyPageParam,
+        useInfiniteQuery,
+        useSuspenseInfiniteQuery,
+        CompositeError,
+        getInitialPageParam,
+        getNextPageParam,
+        getPreviousPageParam,
+        PageParam,
+      });
     }
   }
 
@@ -222,8 +208,7 @@ export class HookFile extends ModuleBuilder {
     const skipSelect =
       returnType &&
       returnType.properties.some(
-        (prop) =>
-          prop.name.value !== 'data' && prop.name.value !== 'errors',
+        (prop) => prop.name.value !== 'data' && prop.name.value !== 'errors',
       );
 
     const returnTypeName = returnType ? buildTypeName(returnType) : 'void';
@@ -255,15 +240,14 @@ export class HookFile extends ModuleBuilder {
       undefined,
       method.deprecated?.value,
     );
-    yield `export function ${name}(${[
-      paramsExpression,
-      optionsExpression,
-    ].filter(Boolean).join(', ')}) {`;
+    yield `export function ${name}(${[paramsExpression, optionsExpression]
+      .filter(Boolean)
+      .join(', ')}) {`;
     yield `  const defaultOptions = ${queryOptionsName}(${paramsCallsite});`;
     yield `  return ${useQuery()}({...defaultOptions, ...options});`;
     yield `}`;
     yield '';
-    
+
     // Add deprecation comment for suspense query hook
     yield* this.buildDeprecationComment('suspenseQuery', method);
     yield* buildDescription(
@@ -274,7 +258,9 @@ export class HookFile extends ModuleBuilder {
     yield `export function ${suspenseName}(${[
       paramsExpression,
       optionsExpression,
-    ].filter(Boolean).join(', ')}) {`;
+    ]
+      .filter(Boolean)
+      .join(', ')}) {`;
     yield `  const defaultOptions = ${queryOptionsName}(${paramsCallsite});`;
     yield `  return ${useSuspenseQuery()}({...defaultOptions, ...options});`;
     yield `}`;
@@ -466,8 +452,9 @@ export class HookFile extends ModuleBuilder {
 
     const serviceName = camel(`${this.int.name.value}_service`);
     const serviceGetterName = this.nameFactory.buildServiceGetterName(this.int);
-    const mutationOptionsName = this.nameFactory.buildMutationOptionsName(method);
-    
+    const mutationOptionsName =
+      this.nameFactory.buildMutationOptionsName(method);
+
     const paramsType = from(buildParamsType(method));
     const paramsExpression = method.parameters.length
       ? `params: ${type(paramsType)}`
@@ -521,14 +508,15 @@ export class HookFile extends ModuleBuilder {
 
     const serviceName = camel(`${this.int.name.value}_service`);
     const serviceGetterName = this.nameFactory.buildServiceGetterName(this.int);
-    const infiniteOptionsName = this.nameFactory.buildInfiniteQueryOptionsName(method);
-    
+    const infiniteOptionsName =
+      this.nameFactory.buildInfiniteQueryOptionsName(method);
+
     const paramsType = from(buildParamsType(method));
     const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
     const paramsExpression = method.parameters.length
       ? `params${q}: ${type(paramsType)}`
       : '';
-    
+
     const methodExpression = `${serviceName}.${camel(method.name.value)}`;
     const paramsCallsite = method.parameters.length
       ? `${applyPageParam()}(params${q ? '?? {}' : ''}, pageParam)`
@@ -572,12 +560,12 @@ export class HookFile extends ModuleBuilder {
 
     const serviceName = camel(`${this.int.name.value}_service`);
     const serviceGetterName = this.nameFactory.buildServiceGetterName(this.int);
-    
+
     // Keep the internal function for backward compatibility
     const internalName = getQueryOptionsName(method);
     // New exported function name
     const exportedName = this.nameFactory.buildQueryOptionsName(method);
-    
+
     const paramsType = from(buildParamsType(method));
     const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
     const paramsExpression = method.parameters.length
@@ -598,7 +586,9 @@ export class HookFile extends ModuleBuilder {
 
     // Internal function for backward compatibility with hooks
     yield `const ${internalName} = (${paramsExpression}) => {`;
-    yield `  const ${serviceName} = ${this.context.fn(this.nameFactory.buildServiceHookName(this.int))}()`;
+    yield `  const ${serviceName} = ${this.context.fn(
+      this.nameFactory.buildServiceHookName(this.int),
+    )}()`;
     yield `  return ${queryOptions()}({`;
     yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
       includeRelayParams: true,
@@ -616,7 +606,7 @@ export class HookFile extends ModuleBuilder {
     }
     yield `  });`;
     yield `};`;
-    
+
     // New exported query options function (v0.2.0)
     yield '';
     yield* buildDescription(
@@ -646,50 +636,75 @@ export class HookFile extends ModuleBuilder {
   }
 
   private *buildDeprecationComment(
-    hookType: 'query' | 'suspenseQuery' | 'mutation' | 'infinite' | 'suspenseInfinite',
+    hookType:
+      | 'query'
+      | 'suspenseQuery'
+      | 'mutation'
+      | 'infinite'
+      | 'suspenseInfinite',
     method: Method,
   ): Iterable<string> {
     const methodName = method.name.value;
-    
+
     yield '/**';
     yield ' * @deprecated This hook is deprecated and will be removed in a future version.';
     yield ' * Please use the new query options pattern instead:';
     yield ' *';
     yield ' * ```typescript';
-    
+
     switch (hookType) {
       case 'query':
         yield ` * import { useQuery } from '@tanstack/react-query';`;
-        yield ` * import { ${this.nameFactory.buildQueryOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ` * import { ${this.nameFactory.buildQueryOptionsName(
+          method,
+        )} } from './hooks/${this.int.name.value}';`;
         yield ' *';
-        yield ` * const result = useQuery(${this.nameFactory.buildQueryOptionsName(method)}(params));`;
+        yield ` * const result = useQuery(${this.nameFactory.buildQueryOptionsName(
+          method,
+        )}(params));`;
         break;
       case 'suspenseQuery':
         yield ` * import { useSuspenseQuery } from '@tanstack/react-query';`;
-        yield ` * import { ${this.nameFactory.buildQueryOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ` * import { ${this.nameFactory.buildQueryOptionsName(
+          method,
+        )} } from './hooks/${this.int.name.value}';`;
         yield ' *';
-        yield ` * const result = useSuspenseQuery(${this.nameFactory.buildQueryOptionsName(method)}(params));`;
+        yield ` * const result = useSuspenseQuery(${this.nameFactory.buildQueryOptionsName(
+          method,
+        )}(params));`;
         break;
       case 'mutation':
         yield ` * import { useMutation } from '@tanstack/react-query';`;
-        yield ` * import { ${this.nameFactory.buildMutationOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ` * import { ${this.nameFactory.buildMutationOptionsName(
+          method,
+        )} } from './hooks/${this.int.name.value}';`;
         yield ' *';
-        yield ` * const mutation = useMutation(${this.nameFactory.buildMutationOptionsName(method)}());`;
+        yield ` * const mutation = useMutation(${this.nameFactory.buildMutationOptionsName(
+          method,
+        )}());`;
         break;
       case 'infinite':
         yield ` * import { useInfiniteQuery } from '@tanstack/react-query';`;
-        yield ` * import { ${this.nameFactory.buildInfiniteQueryOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ` * import { ${this.nameFactory.buildInfiniteQueryOptionsName(
+          method,
+        )} } from './hooks/${this.int.name.value}';`;
         yield ' *';
-        yield ` * const result = useInfiniteQuery(${this.nameFactory.buildInfiniteQueryOptionsName(method)}(params));`;
+        yield ` * const result = useInfiniteQuery(${this.nameFactory.buildInfiniteQueryOptionsName(
+          method,
+        )}(params));`;
         break;
       case 'suspenseInfinite':
         yield ` * import { useSuspenseInfiniteQuery } from '@tanstack/react-query';`;
-        yield ` * import { ${this.nameFactory.buildInfiniteQueryOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ` * import { ${this.nameFactory.buildInfiniteQueryOptionsName(
+          method,
+        )} } from './hooks/${this.int.name.value}';`;
         yield ' *';
-        yield ` * const result = useSuspenseInfiniteQuery(${this.nameFactory.buildInfiniteQueryOptionsName(method)}(params));`;
+        yield ` * const result = useSuspenseInfiniteQuery(${this.nameFactory.buildInfiniteQueryOptionsName(
+          method,
+        )}(params));`;
         break;
     }
-    
+
     yield ' * ```';
     yield ' */';
   }

@@ -42,7 +42,11 @@ class HookGenerator {
     });
 
     files.push({
-      path: buildFilePath(['hooks', 'query-key-builder.ts'], this.service, this.options),
+      path: buildFilePath(
+        ['hooks', 'query-key-builder.ts'],
+        this.service,
+        this.options,
+      ),
       contents: format(
         from(new QueryKeyBuilderFile(this.service, this.options).build()),
         this.options,

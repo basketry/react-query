@@ -33,17 +33,17 @@ export class ContextFile extends ModuleBuilder {
     yield `export interface ${contextPropsName} { fetch: ${FetchLike()}; options: ${OptionsType()}; }`;
     yield `const ${contextName} = ${createContext()}<${contextPropsName} | undefined>( undefined );`;
     yield ``;
-    
+
     // Store context for non-hook access
     yield `let currentContext: ${contextPropsName} | undefined;`;
     yield ``;
-    
+
     yield `export const ${providerName}: ${FC()}<${PropsWithChildren()}<${contextPropsName}>> = ({ children, fetch, options }) => {`;
     yield `  const value = ${useMemo()}(() => ({ fetch, options }), [fetch, options.mapUnhandledException, options.mapValidationError, options.root]);`;
     yield `  currentContext = value;`;
     yield `  return <${contextName}.Provider value={value}>{children}</${contextName}.Provider>;`;
     yield `};`;
-    
+
     for (const int of this.service.interfaces) {
       const hookName = this.nameFactory.buildServiceHookName(int);
       const getterName = this.nameFactory.buildServiceGetterName(int);
@@ -57,10 +57,12 @@ export class ContextFile extends ModuleBuilder {
       yield `  if (!currentContext) { throw new Error('${getterName} called outside of ${providerName}'); }`;
       yield `  const ${localName}: ${this.types.type(
         interfaceName,
-      )} = new ${this.client.fn(className)}(currentContext.fetch, currentContext.options);`;
+      )} = new ${this.client.fn(
+        className,
+      )}(currentContext.fetch, currentContext.options);`;
       yield `  return ${localName};`;
       yield `};`;
-      
+
       // Keep legacy hook for backward compatibility (v0.1.0)
       yield ``;
       yield `export const ${hookName} = () => {`;

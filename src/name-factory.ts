@@ -40,7 +40,10 @@ export class NameFactory {
     return camel(`get_${this.buildServiceName(int)}`);
   }
 
-  getHookName(method: Method, options?: { infinite?: boolean; suspense?: boolean }): string {
+  getHookName(
+    method: Method,
+    options?: { infinite?: boolean; suspense?: boolean },
+  ): string {
     const name = method.name.value;
     const httpMethod = getHttpMethodByName(this.service, name);
 
