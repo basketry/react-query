@@ -248,6 +248,8 @@ export class HookFile extends ModuleBuilder {
       dataTypeName,
     )} | undefined, (${queryParamsType})[]>,'queryKey' | 'queryFn' | 'select'>`;
 
+    // Add deprecation comment for regular query hook
+    yield* this.buildDeprecationComment('query', method);
     yield* buildDescription(
       method.description,
       undefined,
@@ -261,6 +263,9 @@ export class HookFile extends ModuleBuilder {
     yield `  return ${useQuery()}({...defaultOptions, ...options});`;
     yield `}`;
     yield '';
+    
+    // Add deprecation comment for suspense query hook
+    yield* this.buildDeprecationComment('suspenseQuery', method);
     yield* buildDescription(
       method.description,
       undefined,
@@ -311,6 +316,8 @@ export class HookFile extends ModuleBuilder {
       typeName,
     )}, Error, ${type(paramsType)}, unknown>, 'mutationFn'>`;
 
+    // Add deprecation comment for mutation hook
+    yield* this.buildDeprecationComment('mutation', method);
     yield* buildDescription(
       method.description,
       undefined,
@@ -394,6 +401,9 @@ export class HookFile extends ModuleBuilder {
     yield `  };`;
     yield `}`;
 
+    // Add deprecation comment for infinite query hook
+    yield '';
+    yield* this.buildDeprecationComment('infinite', method);
     yield* buildDescription(
       method.description,
       undefined,
@@ -407,6 +417,9 @@ export class HookFile extends ModuleBuilder {
     yield `  return ${useInfiniteQuery()}(options);`;
     yield `}`;
 
+    // Add deprecation comment for suspense infinite query hook
+    yield '';
+    yield* this.buildDeprecationComment('suspenseInfinite', method);
     yield* buildDescription(
       method.description,
       undefined,
@@ -630,6 +643,55 @@ export class HookFile extends ModuleBuilder {
     }
     yield `  });`;
     yield `};`;
+  }
+
+  private *buildDeprecationComment(
+    hookType: 'query' | 'suspenseQuery' | 'mutation' | 'infinite' | 'suspenseInfinite',
+    method: Method,
+  ): Iterable<string> {
+    const methodName = method.name.value;
+    
+    yield '/**';
+    yield ' * @deprecated This hook is deprecated and will be removed in a future version.';
+    yield ' * Please use the new query options pattern instead:';
+    yield ' *';
+    yield ' * ```typescript';
+    
+    switch (hookType) {
+      case 'query':
+        yield ` * import { useQuery } from '@tanstack/react-query';`;
+        yield ` * import { ${this.nameFactory.buildQueryOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ' *';
+        yield ` * const result = useQuery(${this.nameFactory.buildQueryOptionsName(method)}(params));`;
+        break;
+      case 'suspenseQuery':
+        yield ` * import { useSuspenseQuery } from '@tanstack/react-query';`;
+        yield ` * import { ${this.nameFactory.buildQueryOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ' *';
+        yield ` * const result = useSuspenseQuery(${this.nameFactory.buildQueryOptionsName(method)}(params));`;
+        break;
+      case 'mutation':
+        yield ` * import { useMutation } from '@tanstack/react-query';`;
+        yield ` * import { ${this.nameFactory.buildMutationOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ' *';
+        yield ` * const mutation = useMutation(${this.nameFactory.buildMutationOptionsName(method)}());`;
+        break;
+      case 'infinite':
+        yield ` * import { useInfiniteQuery } from '@tanstack/react-query';`;
+        yield ` * import { ${this.nameFactory.buildInfiniteQueryOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ' *';
+        yield ` * const result = useInfiniteQuery(${this.nameFactory.buildInfiniteQueryOptionsName(method)}(params));`;
+        break;
+      case 'suspenseInfinite':
+        yield ` * import { useSuspenseInfiniteQuery } from '@tanstack/react-query';`;
+        yield ` * import { ${this.nameFactory.buildInfiniteQueryOptionsName(method)} } from './hooks/${this.int.name.value}';`;
+        yield ' *';
+        yield ` * const result = useSuspenseInfiniteQuery(${this.nameFactory.buildInfiniteQueryOptionsName(method)}(params));`;
+        break;
+    }
+    
+    yield ' * ```';
+    yield ' */';
   }
 
   private getHookName(
