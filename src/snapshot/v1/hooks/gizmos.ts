@@ -12,183 +12,119 @@
  * About @basketry/react-query: https://github.com/basketry/react-query#readme
  */
 
-import {
-  mutationOptions,
-  queryOptions,
-  type UndefinedInitialDataOptions,
-  useMutation,
-  type UseMutationOptions,
-  useQuery,
-  useQueryClient,
-  useSuspenseQuery,
-} from '@tanstack/react-query';
-import type {
-  CreateGizmoParams,
-  GetGizmosParams,
-  Gizmo,
-  GizmosResponse,
-  UpdateGizmoParams,
-  UploadGizmoParams,
-} from '../types';
-import { getGizmoService, useGizmoService } from './context';
-import { compact, CompositeError } from './runtime';
+import { mutationOptions, queryOptions, type UndefinedInitialDataOptions, useMutation, type UseMutationOptions, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import type { CreateGizmoParams, GetGizmosParams, Gizmo, GizmosResponse, UpdateGizmoParams, UploadGizmoParams } from '../types'
+import { getGizmoService, useGizmoService } from './context'
+import { CompositeError } from './runtime'
+
 
 /**
  * Has a summary in addition to a description
  * Has a description in addition to a summary
  * @deprecated
  */
-export function useCreateGizmo(
-  options?: Omit<
-    UseMutationOptions<void, Error, CreateGizmoParams, unknown>,
-    'mutationFn'
-  >,
-) {
+export function useCreateGizmo(options?: Omit<UseMutationOptions<void, Error, CreateGizmoParams, unknown>, 'mutationFn'>) {
   const queryClient = useQueryClient();
-  const gizmoService = useGizmoService();
+  const gizmoService = useGizmoService()
   return useMutation({
     mutationFn: async (params?: CreateGizmoParams) => {
       const res = await gizmoService.createGizmo(params);
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
-      queryClient.invalidateQueries({ queryKey: [`/gizmos`] });
+      if (res.errors.length) { throw new CompositeError(res.errors); }
+      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
+      queryClient.invalidateQueries({ queryKey: ['gizmo'] });
       return res.data;
     },
     ...options,
   });
 }
 
-/**
- * Only has a summary
- * @deprecated
- */
-export function useGizmos(
-  params?: GetGizmosParams,
-  options?: Omit<
-    UndefinedInitialDataOptions<
-      GizmosResponse,
-      Error,
-      Gizmo | undefined,
-      (string | Record<string, string | number | boolean>)[]
-    >,
-    'queryKey' | 'queryFn' | 'select'
-  >,
-) {
-  const defaultOptions = useGetGizmosQueryOptions(params);
-  return useQuery({ ...defaultOptions, ...options });
-}
 
 /**
  * Only has a summary
  * @deprecated
  */
-export function useSuspenseGizmos(
-  params?: GetGizmosParams,
-  options?: Omit<
-    UndefinedInitialDataOptions<
-      GizmosResponse,
-      Error,
-      Gizmo | undefined,
-      (string | Record<string, string | number | boolean>)[]
-    >,
-    'queryKey' | 'queryFn' | 'select'
-  >,
-) {
+export function useGizmos(params?: GetGizmosParams,options?: Omit<UndefinedInitialDataOptions<GizmosResponse, Error, Gizmo | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
   const defaultOptions = useGetGizmosQueryOptions(params);
-  return useSuspenseQuery({ ...defaultOptions, ...options });
+  return useQuery({...defaultOptions, ...options});
 }
+
+
+/**
+ * Only has a summary
+ * @deprecated
+ */
+export function useSuspenseGizmos(params?: GetGizmosParams,options?: Omit<UndefinedInitialDataOptions<GizmosResponse, Error, Gizmo | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
+  const defaultOptions = useGetGizmosQueryOptions(params);
+  return useSuspenseQuery({...defaultOptions, ...options});
+}
+
 
 /**
  * @deprecated
  */
-export function useUpdateGizmo(
-  options?: Omit<
-    UseMutationOptions<void, Error, UpdateGizmoParams, unknown>,
-    'mutationFn'
-  >,
-) {
+export function useUpdateGizmo(options?: Omit<UseMutationOptions<void, Error, UpdateGizmoParams, unknown>, 'mutationFn'>) {
   const queryClient = useQueryClient();
-  const gizmoService = useGizmoService();
+  const gizmoService = useGizmoService()
   return useMutation({
     mutationFn: async (params?: UpdateGizmoParams) => {
       const res = await gizmoService.updateGizmo(params);
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
-      queryClient.invalidateQueries({ queryKey: [`/gizmos`] });
+      if (res.errors.length) { throw new CompositeError(res.errors); }
+      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
+      queryClient.invalidateQueries({ queryKey: ['gizmo'] });
       return res.data;
     },
     ...options,
   });
 }
+
 
 /**
  * @deprecated
  */
-export function useUploadGizmo(
-  options?: Omit<
-    UseMutationOptions<void, Error, UploadGizmoParams, unknown>,
-    'mutationFn'
-  >,
-) {
+export function useUploadGizmo(options?: Omit<UseMutationOptions<void, Error, UploadGizmoParams, unknown>, 'mutationFn'>) {
   const queryClient = useQueryClient();
-  const gizmoService = useGizmoService();
+  const gizmoService = useGizmoService()
   return useMutation({
     mutationFn: async (params: UploadGizmoParams) => {
       const res = await gizmoService.uploadGizmo(params);
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
-      queryClient.invalidateQueries({ queryKey: [`/gizmos/data`] });
+      if (res.errors.length) { throw new CompositeError(res.errors); }
+      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
+      queryClient.invalidateQueries({ queryKey: ['gizmo'] });
       return res.data;
     },
     ...options,
   });
 }
 
+
+
 const useGetGizmosQueryOptions = (params?: GetGizmosParams) => {
-  const gizmoService = useGizmoService();
+  const gizmoService = useGizmoService()
   return queryOptions({
-    queryKey: [`/gizmos`, compact({ search: params?.['search'] })].filter(
-      Boolean,
-    ),
+    queryKey: ['gizmo', 'getGizmos', params? || {}],
     queryFn: async () => {
       const res = await gizmoService.getGizmos(params);
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
+      if (res.errors.length) { throw new CompositeError(res.errors); }
+      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
       return res;
     },
     select: (data) => data.data,
   });
 };
 
+
 /**
  * Only has a summary
  * @deprecated
  */
 export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
-  const gizmoService = getGizmoService();
+  const gizmoService = getGizmoService()
   return queryOptions({
-    queryKey: [`/gizmos`, compact({ search: params?.['search'] })].filter(
-      Boolean,
-    ),
+    queryKey: ['gizmo', 'getGizmos', params? || {}],
     queryFn: async () => {
       const res = await gizmoService.getGizmos(params);
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
+      if (res.errors.length) { throw new CompositeError(res.errors); }
+      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
       return res;
     },
     select: (data) => data.data,
@@ -200,43 +136,34 @@ export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
  * Has a description in addition to a summary
  */
 export const createGizmoMutationOptions = () => {
-  const gizmoService = getGizmoService();
+  const gizmoService = getGizmoService()
   return mutationOptions({
     mutationFn: async (params: CreateGizmoParams) => {
       const res = await gizmoService.createGizmo(params);
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
+      if (res.errors.length) { throw new CompositeError(res.errors); }
+      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
       return res.data;
     },
   });
 };
 export const updateGizmoMutationOptions = () => {
-  const gizmoService = getGizmoService();
+  const gizmoService = getGizmoService()
   return mutationOptions({
     mutationFn: async (params: UpdateGizmoParams) => {
       const res = await gizmoService.updateGizmo(params);
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
+      if (res.errors.length) { throw new CompositeError(res.errors); }
+      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
       return res.data;
     },
   });
 };
 export const uploadGizmoMutationOptions = () => {
-  const gizmoService = getGizmoService();
+  const gizmoService = getGizmoService()
   return mutationOptions({
     mutationFn: async (params: UploadGizmoParams) => {
       const res = await gizmoService.uploadGizmo(params);
-      if (res.errors.length) {
-        throw new CompositeError(res.errors);
-      } else if (!res.data) {
-        throw new Error('Unexpected data error: Failed to get example');
-      }
+      if (res.errors.length) { throw new CompositeError(res.errors); }
+      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
       return res.data;
     },
   });

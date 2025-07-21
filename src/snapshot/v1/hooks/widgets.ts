@@ -51,7 +51,7 @@ export function useCreateWidget(
       } else if (!res.data) {
         throw new Error('Unexpected data error: Failed to get example');
       }
-      queryClient.invalidateQueries({ queryKey: [`/widgets`] });
+      queryClient.invalidateQueries({ queryKey: ['widget'] });
       return res.data;
     },
     ...options,
@@ -77,9 +77,7 @@ export function useDeleteWidgetFoo(
       } else if (!res.data) {
         throw new Error('Unexpected data error: Failed to get example');
       }
-      queryClient.invalidateQueries({
-        queryKey: [`/widgets/${params['id']}/foo`],
-      });
+      queryClient.invalidateQueries({ queryKey: ['widget'] });
       return res.data;
     },
     ...options,
@@ -105,7 +103,7 @@ export function usePutWidget(
       } else if (!res.data) {
         throw new Error('Unexpected data error: Failed to get example');
       }
-      queryClient.invalidateQueries({ queryKey: [`/widgets`] });
+      queryClient.invalidateQueries({ queryKey: ['widget'] });
       return res.data;
     },
     ...options,
@@ -169,7 +167,7 @@ export function useSuspenseWidgets(
 const useGetWidgetsQueryOptions = () => {
   const widgetService = useWidgetService();
   return queryOptions({
-    queryKey: [`/widgets`],
+    queryKey: ['widget', 'getWidgets', {}],
     queryFn: async () => {
       const res = await widgetService.getWidgets();
       if (res.errors.length) {
@@ -185,7 +183,7 @@ const useGetWidgetsQueryOptions = () => {
 export const getWidgetsQueryOptions = () => {
   const widgetService = getWidgetService();
   return queryOptions({
-    queryKey: [`/widgets`],
+    queryKey: ['widget', 'getWidgets', {}],
     queryFn: async () => {
       const res = await widgetService.getWidgets();
       if (res.errors.length) {
@@ -228,7 +226,7 @@ export const putWidgetMutationOptions = () => {
 const useGetWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
   const widgetService = useWidgetService();
   return queryOptions({
-    queryKey: [`/widgets/${params['id']}/foo`],
+    queryKey: ['widget', 'getWidgetFoo', params || {}],
     queryFn: async () => {
       const res = await widgetService.getWidgetFoo(params);
       if (res.errors.length) {
@@ -244,7 +242,7 @@ const useGetWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
 export const getWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
   const widgetService = getWidgetService();
   return queryOptions({
-    queryKey: [`/widgets/${params['id']}/foo`],
+    queryKey: ['widget', 'getWidgetFoo', params || {}],
     queryFn: async () => {
       const res = await widgetService.getWidgetFoo(params);
       if (res.errors.length) {

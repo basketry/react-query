@@ -1,6 +1,6 @@
-import { Interface, isRequired, Method, Service } from 'basketry';
+import { isRequired, Method, Service } from 'basketry';
 
-import { buildParamsType, buildTypeName } from '@basketry/typescript';
+import { buildParamsType } from '@basketry/typescript';
 import { from } from '@basketry/typescript/lib/utils';
 
 import { camel } from 'case';
@@ -8,7 +8,7 @@ import { NamespacedReactQueryOptions } from './types';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
 
-export class QueryKeyBuilderFile extends ModuleBuilder {
+export class QueryKeyBuilder extends ModuleBuilder {
   constructor(
     service: Service,
     options: NamespacedReactQueryOptions | undefined,

@@ -74,7 +74,7 @@ export function useComboAuthSchemes(
       } else if (!res.data) {
         throw new Error('Unexpected data error: Failed to get example');
       }
-      queryClient.invalidateQueries({ queryKey: [`/authPermutations`] });
+      queryClient.invalidateQueries({ queryKey: ['authPermutation'] });
       return res.data;
     },
     ...options,
@@ -84,7 +84,7 @@ export function useComboAuthSchemes(
 const useAllAuthSchemesQueryOptions = () => {
   const authPermutationService = useAuthPermutationService();
   return queryOptions({
-    queryKey: [`/authPermutations`],
+    queryKey: ['authPermutation', 'allAuthSchemes', {}],
     queryFn: async () => {
       const res = await authPermutationService.allAuthSchemes();
       if (res.errors.length) {
@@ -101,7 +101,7 @@ const useAllAuthSchemesQueryOptions = () => {
 export const allAuthSchemesQueryOptions = () => {
   const authPermutationService = getAuthPermutationService();
   return queryOptions({
-    queryKey: [`/authPermutations`],
+    queryKey: ['authPermutation', 'allAuthSchemes', {}],
     queryFn: async () => {
       const res = await authPermutationService.allAuthSchemes();
       if (res.errors.length) {

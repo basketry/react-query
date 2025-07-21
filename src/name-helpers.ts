@@ -5,7 +5,6 @@ export function getQueryOptionsName(method: Method): string {
   return camel(`use_${method.name.value}_query_options`);
 }
 
-// Helper functions for v0.2.0 code
 export function buildServiceGetterName(int: Interface): string {
   return camel(`get_${int.name.value}_service`);
 }
