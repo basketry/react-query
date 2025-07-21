@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Generated hooks now use simplified `@deprecated` JSDoc tags instead of custom deprecation blocks
+- Query keys now use a simpler static structure based on interface and method names
+  - Changed from URL-based resource keys to pattern: `['interface', 'method', params || {}]`
+  - Interface names in query keys now use camelCase for consistency with JavaScript conventions
+  - Removed complex URL path parsing logic for cleaner, more predictable keys
+- Refactored internal code generation to use helper functions instead of NameFactory class
 
 ### Fixed
 
@@ -28,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed duplicate function declarations for methods not starting with "get"
   - Suspense hooks now correctly generate with `useSuspense` prefix for all method types
   - Prevents TypeScript errors from duplicate function names
+- Fixed invalid TypeScript syntax in query keys where optional parameter syntax (`params?`) was incorrectly used in runtime expressions
+- Fixed infinite query key typo (`inifinite` → `infinite`)
+- Build configuration now properly excludes snapshot directory from TypeScript compilation
+- Added README.md to .prettierignore to prevent formatter hanging
 
 ### Deprecated
 
