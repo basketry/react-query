@@ -137,12 +137,7 @@ export class HookFile extends ModuleBuilder {
           dataTypeName,
         )} | undefined, (${queryParamsType})[]>,'queryKey' | 'queryFn' | 'select'>`;
 
-        yield* this.buildDeprecationComment('query', method);
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export function ${name}(${[
           paramsExpression,
           optionsExpression,
@@ -151,12 +146,7 @@ export class HookFile extends ModuleBuilder {
         yield `  return ${useQuery()}({...defaultOptions, ...options});`;
         yield `}`;
         yield '';
-        yield* this.buildDeprecationComment('suspenseQuery', method);
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export function ${suspenseName}(${[
           paramsExpression,
           optionsExpression,
@@ -183,12 +173,7 @@ export class HookFile extends ModuleBuilder {
           typeName,
         )}, Error, ${type(paramsType)}, unknown>, 'mutationFn'>`;
 
-        yield* this.buildDeprecationComment('mutation', method);
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export function ${name}(${optionsExpression}) {`;
         yield `  const queryClient = ${useQueryClient()}();`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
@@ -247,12 +232,7 @@ export class HookFile extends ModuleBuilder {
         yield `  };`;
         yield `}`;
 
-        yield* this.buildDeprecationComment('infinite', method);
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export const ${this.getHookName(method, {
           suspense: false,
           infinite: true,
@@ -261,12 +241,7 @@ export class HookFile extends ModuleBuilder {
         yield `  return ${useInfiniteQuery()}(options);`;
         yield `}`;
 
-        yield* this.buildDeprecationComment('suspenseInfinite', method);
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export const ${this.getHookName(method, {
           suspense: true,
           infinite: true,
@@ -517,80 +492,6 @@ export class HookFile extends ModuleBuilder {
     }
     yield `  });`;
     yield `};`;
-  }
-
-  private *buildDeprecationComment(
-    hookType:
-      | 'query'
-      | 'suspenseQuery'
-      | 'mutation'
-      | 'infinite'
-      | 'suspenseInfinite',
-    method: Method,
-  ): Iterable<string> {
-    const methodName = method.name.value;
-
-    yield '/**';
-    yield ' * @deprecated This hook is deprecated and will be removed in a future version.';
-    yield ' * Please use the new query options pattern instead:';
-    yield ' *';
-    yield ' * ```typescript';
-
-    switch (hookType) {
-      case 'query':
-        yield ` * import { useQuery } from '@tanstack/react-query';`;
-        yield ` * import { ${buildQueryOptionsName(
-          method,
-        )} } from './hooks/${this.int.name.value}';`;
-        yield ' *';
-        yield ` * const result = useQuery(${buildQueryOptionsName(
-          method,
-        )}(params));`;
-        break;
-      case 'suspenseQuery':
-        yield ` * import { useSuspenseQuery } from '@tanstack/react-query';`;
-        yield ` * import { ${buildQueryOptionsName(
-          method,
-        )} } from './hooks/${this.int.name.value}';`;
-        yield ' *';
-        yield ` * const result = useSuspenseQuery(${buildQueryOptionsName(
-          method,
-        )}(params));`;
-        break;
-      case 'mutation':
-        yield ` * import { useMutation } from '@tanstack/react-query';`;
-        yield ` * import { ${buildMutationOptionsName(
-          method,
-        )} } from './hooks/${this.int.name.value}';`;
-        yield ' *';
-        yield ` * const mutation = useMutation(${buildMutationOptionsName(
-          method,
-        )}());`;
-        break;
-      case 'infinite':
-        yield ` * import { useInfiniteQuery } from '@tanstack/react-query';`;
-        yield ` * import { ${buildInfiniteQueryOptionsName(
-          method,
-        )} } from './hooks/${this.int.name.value}';`;
-        yield ' *';
-        yield ` * const result = useInfiniteQuery(${buildInfiniteQueryOptionsName(
-          method,
-        )}(params));`;
-        break;
-      case 'suspenseInfinite':
-        yield ` * import { useSuspenseInfiniteQuery } from '@tanstack/react-query';`;
-        yield ` * import { ${buildInfiniteQueryOptionsName(
-          method,
-        )} } from './hooks/${this.int.name.value}';`;
-        yield ' *';
-        yield ` * const result = useSuspenseInfiniteQuery(${buildInfiniteQueryOptionsName(
-          method,
-        )}(params));`;
-        break;
-    }
-
-    yield ' * ```';
-    yield ' */';
   }
 
   private getHookName(

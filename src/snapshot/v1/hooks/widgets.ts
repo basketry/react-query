@@ -33,15 +33,7 @@ import { getWidgetService, useWidgetService } from './context';
 import { CompositeError } from './runtime';
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useMutation } from '@tanstack/react-query';
- * import { createWidgetMutationOptions } from './hooks/widget';
- *
- * const mutation = useMutation(createWidgetMutationOptions());
- * ```
+ * @deprecated
  */
 export function useCreateWidget(
   options?: Omit<
@@ -67,15 +59,7 @@ export function useCreateWidget(
 }
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useMutation } from '@tanstack/react-query';
- * import { deleteWidgetFooMutationOptions } from './hooks/widget';
- *
- * const mutation = useMutation(deleteWidgetFooMutationOptions());
- * ```
+ * @deprecated
  */
 export function useDeleteWidgetFoo(
   options?: Omit<
@@ -103,15 +87,7 @@ export function useDeleteWidgetFoo(
 }
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useMutation } from '@tanstack/react-query';
- * import { putWidgetMutationOptions } from './hooks/widget';
- *
- * const mutation = useMutation(putWidgetMutationOptions());
- * ```
+ * @deprecated
  */
 export function usePutWidget(
   options?: Omit<
@@ -137,15 +113,7 @@ export function usePutWidget(
 }
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useQuery } from '@tanstack/react-query';
- * import { getWidgetFooQueryOptions } from './hooks/widget';
- *
- * const result = useQuery(getWidgetFooQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useWidgetFoo(
   params: GetWidgetFooParams,
@@ -159,15 +127,7 @@ export function useWidgetFoo(
 }
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { getWidgetFooQueryOptions } from './hooks/widget';
- *
- * const result = useSuspenseQuery(getWidgetFooQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useSuspenseWidgetFoo(
   params: GetWidgetFooParams,
@@ -181,15 +141,7 @@ export function useSuspenseWidgetFoo(
 }
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useQuery } from '@tanstack/react-query';
- * import { getWidgetsQueryOptions } from './hooks/widget';
- *
- * const result = useQuery(getWidgetsQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useWidgets(
   options?: Omit<
@@ -202,15 +154,7 @@ export function useWidgets(
 }
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { getWidgetsQueryOptions } from './hooks/widget';
- *
- * const result = useSuspenseQuery(getWidgetsQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useSuspenseWidgets(
   options?: Omit<

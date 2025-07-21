@@ -30,15 +30,7 @@ import {
 import { CompositeError } from './runtime';
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useQuery } from '@tanstack/react-query';
- * import { allAuthSchemesQueryOptions } from './hooks/authPermutation';
- *
- * const result = useQuery(allAuthSchemesQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useAllAuthSchemes(
   options?: Omit<
@@ -51,15 +43,7 @@ export function useAllAuthSchemes(
 }
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { allAuthSchemesQueryOptions } from './hooks/authPermutation';
- *
- * const result = useSuspenseQuery(allAuthSchemesQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useAllAuthSchemes(
   options?: Omit<
@@ -72,15 +56,7 @@ export function useAllAuthSchemes(
 }
 
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useMutation } from '@tanstack/react-query';
- * import { comboAuthSchemesMutationOptions } from './hooks/authPermutation';
- *
- * const mutation = useMutation(comboAuthSchemesMutationOptions());
- * ```
+ * @deprecated
  */
 export function useComboAuthSchemes(
   options?: Omit<

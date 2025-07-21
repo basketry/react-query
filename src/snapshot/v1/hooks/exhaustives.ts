@@ -17,64 +17,36 @@ import type { ExhaustiveFormatsParams, ExhaustiveParamsParams } from '../types'
 import { getExhaustiveService, useExhaustiveService } from './context'
 import { compact, CompositeError } from './runtime'
 
+
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useQuery } from '@tanstack/react-query';
- * import { exhaustiveFormatsQueryOptions } from './hooks/exhaustive';
- *
- * const result = useQuery(exhaustiveFormatsQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useExhaustiveFormats(params?: ExhaustiveFormatsParams,options?: Omit<UndefinedInitialDataOptions<void, Error, void | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
   const defaultOptions = useExhaustiveFormatsQueryOptions(params);
   return useQuery({...defaultOptions, ...options});
 }
 
+
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { exhaustiveFormatsQueryOptions } from './hooks/exhaustive';
- *
- * const result = useSuspenseQuery(exhaustiveFormatsQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useExhaustiveFormats(params?: ExhaustiveFormatsParams,options?: Omit<UndefinedInitialDataOptions<void, Error, void | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
   const defaultOptions = useExhaustiveFormatsQueryOptions(params);
   return useSuspenseQuery({...defaultOptions, ...options});
 }
 
+
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useQuery } from '@tanstack/react-query';
- * import { exhaustiveParamsQueryOptions } from './hooks/exhaustive';
- *
- * const result = useQuery(exhaustiveParamsQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useExhaustiveParams(params: ExhaustiveParamsParams,options?: Omit<UndefinedInitialDataOptions<void, Error, void | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
   const defaultOptions = useExhaustiveParamsQueryOptions(params);
   return useQuery({...defaultOptions, ...options});
 }
 
+
 /**
- * @deprecated This hook is deprecated and will be removed in a future version.
- * Please use the new query options pattern instead:
- *
- * ```typescript
- * import { useSuspenseQuery } from '@tanstack/react-query';
- * import { exhaustiveParamsQueryOptions } from './hooks/exhaustive';
- *
- * const result = useSuspenseQuery(exhaustiveParamsQueryOptions(params));
- * ```
+ * @deprecated
  */
 export function useExhaustiveParams(params: ExhaustiveParamsParams,options?: Omit<UndefinedInitialDataOptions<void, Error, void | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
   const defaultOptions = useExhaustiveParamsQueryOptions(params);
