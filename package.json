@@ -1,7 +1,7 @@
 {
   "name": "@basketry/react-query",
   "version": "0.0.0",
-  "description": "Basketry generator for generating Typescript interfaces",
+  "description": "Basketry generator for generating React Query hooks",
   "main": "./lib/index.js",
   "scripts": {
     "test": "jest",
