@@ -542,7 +542,7 @@ export class HookFile extends ModuleBuilder {
     const queryKey = [`'${interfaceName}'`, `'${methodName}'`];
 
     if (method.parameters.length) {
-      queryKey.push(`params${q} || {}`);
+      queryKey.push(`params || {}`);
     } else {
       queryKey.push('{}');
     }
