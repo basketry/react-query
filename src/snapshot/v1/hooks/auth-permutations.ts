@@ -45,7 +45,7 @@ export function useAllAuthSchemes(
 /**
  * @deprecated
  */
-export function useAllAuthSchemes(
+export function useSuspenseAllAuthSchemes(
   options?: Omit<
     UndefinedInitialDataOptions<void, Error, void | undefined, string[]>,
     'queryKey' | 'queryFn' | 'select'

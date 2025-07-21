@@ -44,7 +44,7 @@ export function useExhaustiveFormats(
 /**
  * @deprecated
  */
-export function useExhaustiveFormats(
+export function useSuspenseExhaustiveFormats(
   params?: ExhaustiveFormatsParams,
   options?: Omit<
     UndefinedInitialDataOptions<
@@ -82,7 +82,7 @@ export function useExhaustiveParams(
 /**
  * @deprecated
  */
-export function useExhaustiveParams(
+export function useSuspenseExhaustiveParams(
   params: ExhaustiveParamsParams,
   options?: Omit<
     UndefinedInitialDataOptions<

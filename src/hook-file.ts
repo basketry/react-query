@@ -512,7 +512,11 @@ export class HookFile extends ModuleBuilder {
       );
     }
 
-    return camel(`use_${name}`);
+    return camel(
+      `use_${options?.suspense ? 'suspense_' : ''}${
+        options?.infinite ? 'infinite_' : ''
+      }${name}`,
+    );
   }
 
   private getHttpPath(
