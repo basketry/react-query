@@ -535,7 +535,6 @@ export class HookFile extends ModuleBuilder {
     method: Method,
     options?: { includeRelayParams?: boolean; infinite?: boolean },
   ): string {
-    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
     const interfaceName = camel(this.int.name.value);
     const methodName = camel(method.name.value);
 
