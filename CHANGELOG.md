@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Generated hooks now use simplified `@deprecated` JSDoc tags instead of custom deprecation blocks
 
+### Fixed
+
+- Parameter names with special characters (e.g., hyphens) are now properly handled in query keys
+  - All parameter access now uses bracket notation for consistency
+  - Object keys in query key generation are properly quoted
+
 ### Deprecated
 
 - Legacy hook exports (`use{MethodName}`, `useSuspense{MethodName}`, etc.) are now deprecated
