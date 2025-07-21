@@ -560,7 +560,10 @@ export class HookFile extends ModuleBuilder {
       });
       queryKey.push(
         `${compact()}({${queryParams
-          .map((p) => `${p.name.value}: params${q}.${p.name.value}`)
+          .map(
+            (p) =>
+              `'${p.name.value}': params${q}${q ? '.' : ''}['${p.name.value}']`,
+          )
           .join(',')}})`,
       );
     }
@@ -592,7 +595,7 @@ export class HookFile extends ModuleBuilder {
     const path = parts.filter(Boolean).map((part) => {
       if (part.startsWith('{') && part.endsWith('}')) {
         const param = part.slice(1, -1);
-        return `\${params${q}.${camel(param)}}`;
+        return `\${params${q}['${camel(param)}']}`;
       }
 
       return part;

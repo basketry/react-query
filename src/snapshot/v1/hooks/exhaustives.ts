@@ -12,98 +12,211 @@
  * About @basketry/react-query: https://github.com/basketry/react-query#readme
  */
 
-import { queryOptions, type UndefinedInitialDataOptions, useQuery, useSuspenseQuery } from '@tanstack/react-query'
-import type { ExhaustiveFormatsParams, ExhaustiveParamsParams } from '../types'
-import { getExhaustiveService, useExhaustiveService } from './context'
-import { compact, CompositeError } from './runtime'
-
+import {
+  queryOptions,
+  type UndefinedInitialDataOptions,
+  useQuery,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
+import type { ExhaustiveFormatsParams, ExhaustiveParamsParams } from '../types';
+import { getExhaustiveService, useExhaustiveService } from './context';
+import { compact, CompositeError } from './runtime';
 
 /**
  * @deprecated
  */
-export function useExhaustiveFormats(params?: ExhaustiveFormatsParams,options?: Omit<UndefinedInitialDataOptions<void, Error, void | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
+export function useExhaustiveFormats(
+  params?: ExhaustiveFormatsParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      void,
+      Error,
+      void | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) {
   const defaultOptions = useExhaustiveFormatsQueryOptions(params);
-  return useQuery({...defaultOptions, ...options});
+  return useQuery({ ...defaultOptions, ...options });
 }
-
 
 /**
  * @deprecated
  */
-export function useExhaustiveFormats(params?: ExhaustiveFormatsParams,options?: Omit<UndefinedInitialDataOptions<void, Error, void | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
+export function useExhaustiveFormats(
+  params?: ExhaustiveFormatsParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      void,
+      Error,
+      void | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) {
   const defaultOptions = useExhaustiveFormatsQueryOptions(params);
-  return useSuspenseQuery({...defaultOptions, ...options});
+  return useSuspenseQuery({ ...defaultOptions, ...options });
 }
-
 
 /**
  * @deprecated
  */
-export function useExhaustiveParams(params: ExhaustiveParamsParams,options?: Omit<UndefinedInitialDataOptions<void, Error, void | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
+export function useExhaustiveParams(
+  params: ExhaustiveParamsParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      void,
+      Error,
+      void | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) {
   const defaultOptions = useExhaustiveParamsQueryOptions(params);
-  return useQuery({...defaultOptions, ...options});
+  return useQuery({ ...defaultOptions, ...options });
 }
-
 
 /**
  * @deprecated
  */
-export function useExhaustiveParams(params: ExhaustiveParamsParams,options?: Omit<UndefinedInitialDataOptions<void, Error, void | undefined, (string | Record<string, string | number | boolean>)[]>,'queryKey' | 'queryFn' | 'select'>) {
+export function useExhaustiveParams(
+  params: ExhaustiveParamsParams,
+  options?: Omit<
+    UndefinedInitialDataOptions<
+      void,
+      Error,
+      void | undefined,
+      (string | Record<string, string | number | boolean>)[]
+    >,
+    'queryKey' | 'queryFn' | 'select'
+  >,
+) {
   const defaultOptions = useExhaustiveParamsQueryOptions(params);
-  return useSuspenseQuery({...defaultOptions, ...options});
+  return useSuspenseQuery({ ...defaultOptions, ...options });
 }
-
-
 
 const useExhaustiveFormatsQueryOptions = (params?: ExhaustiveFormatsParams) => {
-  const exhaustiveService = useExhaustiveService()
+  const exhaustiveService = useExhaustiveService();
   return queryOptions({
-    queryKey: [`/exhaustive`, compact({string-no-format: params?.string-no-format,string-date: params?.string-date,string-date-time: params?.string-date-time,integer-no-format: params?.integer-no-format,integer-int32: params?.integer-int32,integer-int64: params?.integer-int64,number-no-format: params?.number-no-format,number-float: params?.number-float,number-double: params?.number-double})].filter(Boolean),
+    queryKey: [
+      `/exhaustive`,
+      compact({
+        'string-no-format': params?.['string-no-format'],
+        'string-date': params?.['string-date'],
+        'string-date-time': params?.['string-date-time'],
+        'integer-no-format': params?.['integer-no-format'],
+        'integer-int32': params?.['integer-int32'],
+        'integer-int64': params?.['integer-int64'],
+        'number-no-format': params?.['number-no-format'],
+        'number-float': params?.['number-float'],
+        'number-double': params?.['number-double'],
+      }),
+    ].filter(Boolean),
     queryFn: async () => {
       const res = await exhaustiveService.exhaustiveFormats(params);
-      if (res.errors.length) { throw new CompositeError(res.errors); }
-      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
+      if (res.errors.length) {
+        throw new CompositeError(res.errors);
+      } else if (!res.data) {
+        throw new Error('Unexpected data error: Failed to get example');
+      }
       return res;
     },
     select: (data) => data.data,
   });
 };
 
-export const exhaustiveFormatsQueryOptions = (params?: ExhaustiveFormatsParams) => {
-  const exhaustiveService = getExhaustiveService()
+export const exhaustiveFormatsQueryOptions = (
+  params?: ExhaustiveFormatsParams,
+) => {
+  const exhaustiveService = getExhaustiveService();
   return queryOptions({
-    queryKey: [`/exhaustive`, compact({string-no-format: params?.string-no-format,string-date: params?.string-date,string-date-time: params?.string-date-time,integer-no-format: params?.integer-no-format,integer-int32: params?.integer-int32,integer-int64: params?.integer-int64,number-no-format: params?.number-no-format,number-float: params?.number-float,number-double: params?.number-double})].filter(Boolean),
+    queryKey: [
+      `/exhaustive`,
+      compact({
+        'string-no-format': params?.['string-no-format'],
+        'string-date': params?.['string-date'],
+        'string-date-time': params?.['string-date-time'],
+        'integer-no-format': params?.['integer-no-format'],
+        'integer-int32': params?.['integer-int32'],
+        'integer-int64': params?.['integer-int64'],
+        'number-no-format': params?.['number-no-format'],
+        'number-float': params?.['number-float'],
+        'number-double': params?.['number-double'],
+      }),
+    ].filter(Boolean),
     queryFn: async () => {
       const res = await exhaustiveService.exhaustiveFormats(params);
-      if (res.errors.length) { throw new CompositeError(res.errors); }
-      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
+      if (res.errors.length) {
+        throw new CompositeError(res.errors);
+      } else if (!res.data) {
+        throw new Error('Unexpected data error: Failed to get example');
+      }
       return res;
     },
     select: (data) => data.data,
   });
 };
 const useExhaustiveParamsQueryOptions = (params: ExhaustiveParamsParams) => {
-  const exhaustiveService = useExhaustiveService()
+  const exhaustiveService = useExhaustiveService();
   return queryOptions({
-    queryKey: [`/exhaustive/${params.pathString}/${params.pathEnum}/${params.pathNumber}/${params.pathInteger}/${params.pathBoolean}/${params.pathStringArray}/${params.pathEnumArray}/${params.pathNumberArray}/${params.pathIntegerArray}/${params.pathBooleanArray}`, compact({query-string: params.query-string,query-enum: params.query-enum,query-number: params.query-number,query-integer: params.query-integer,query-boolean: params.query-boolean,query-string-array: params.query-string-array,query-enum-array: params.query-enum-array,query-number-array: params.query-number-array,query-integer-array: params.query-integer-array,query-boolean-array: params.query-boolean-array})].filter(Boolean),
+    queryKey: [
+      `/exhaustive/${params['pathString']}/${params['pathEnum']}/${params['pathNumber']}/${params['pathInteger']}/${params['pathBoolean']}/${params['pathStringArray']}/${params['pathEnumArray']}/${params['pathNumberArray']}/${params['pathIntegerArray']}/${params['pathBooleanArray']}`,
+      compact({
+        'query-string': params['query-string'],
+        'query-enum': params['query-enum'],
+        'query-number': params['query-number'],
+        'query-integer': params['query-integer'],
+        'query-boolean': params['query-boolean'],
+        'query-string-array': params['query-string-array'],
+        'query-enum-array': params['query-enum-array'],
+        'query-number-array': params['query-number-array'],
+        'query-integer-array': params['query-integer-array'],
+        'query-boolean-array': params['query-boolean-array'],
+      }),
+    ].filter(Boolean),
     queryFn: async () => {
       const res = await exhaustiveService.exhaustiveParams(params);
-      if (res.errors.length) { throw new CompositeError(res.errors); }
-      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
+      if (res.errors.length) {
+        throw new CompositeError(res.errors);
+      } else if (!res.data) {
+        throw new Error('Unexpected data error: Failed to get example');
+      }
       return res;
     },
     select: (data) => data.data,
   });
 };
 
-export const exhaustiveParamsQueryOptions = (params: ExhaustiveParamsParams) => {
-  const exhaustiveService = getExhaustiveService()
+export const exhaustiveParamsQueryOptions = (
+  params: ExhaustiveParamsParams,
+) => {
+  const exhaustiveService = getExhaustiveService();
   return queryOptions({
-    queryKey: [`/exhaustive/${params.pathString}/${params.pathEnum}/${params.pathNumber}/${params.pathInteger}/${params.pathBoolean}/${params.pathStringArray}/${params.pathEnumArray}/${params.pathNumberArray}/${params.pathIntegerArray}/${params.pathBooleanArray}`, compact({query-string: params.query-string,query-enum: params.query-enum,query-number: params.query-number,query-integer: params.query-integer,query-boolean: params.query-boolean,query-string-array: params.query-string-array,query-enum-array: params.query-enum-array,query-number-array: params.query-number-array,query-integer-array: params.query-integer-array,query-boolean-array: params.query-boolean-array})].filter(Boolean),
+    queryKey: [
+      `/exhaustive/${params['pathString']}/${params['pathEnum']}/${params['pathNumber']}/${params['pathInteger']}/${params['pathBoolean']}/${params['pathStringArray']}/${params['pathEnumArray']}/${params['pathNumberArray']}/${params['pathIntegerArray']}/${params['pathBooleanArray']}`,
+      compact({
+        'query-string': params['query-string'],
+        'query-enum': params['query-enum'],
+        'query-number': params['query-number'],
+        'query-integer': params['query-integer'],
+        'query-boolean': params['query-boolean'],
+        'query-string-array': params['query-string-array'],
+        'query-enum-array': params['query-enum-array'],
+        'query-number-array': params['query-number-array'],
+        'query-integer-array': params['query-integer-array'],
+        'query-boolean-array': params['query-boolean-array'],
+      }),
+    ].filter(Boolean),
     queryFn: async () => {
       const res = await exhaustiveService.exhaustiveParams(params);
-      if (res.errors.length) { throw new CompositeError(res.errors); }
-      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }
+      if (res.errors.length) {
+        throw new CompositeError(res.errors);
+      } else if (!res.data) {
+        throw new Error('Unexpected data error: Failed to get example');
+      }
       return res;
     },
     select: (data) => data.data,

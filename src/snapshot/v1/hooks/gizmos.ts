@@ -156,7 +156,9 @@ export function useUploadGizmo(
 const useGetGizmosQueryOptions = (params?: GetGizmosParams) => {
   const gizmoService = useGizmoService();
   return queryOptions({
-    queryKey: [`/gizmos`, compact({ search: params?.search })].filter(Boolean),
+    queryKey: [`/gizmos`, compact({ search: params?.['search'] })].filter(
+      Boolean,
+    ),
     queryFn: async () => {
       const res = await gizmoService.getGizmos(params);
       if (res.errors.length) {
@@ -177,7 +179,9 @@ const useGetGizmosQueryOptions = (params?: GetGizmosParams) => {
 export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
   const gizmoService = getGizmoService();
   return queryOptions({
-    queryKey: [`/gizmos`, compact({ search: params?.search })].filter(Boolean),
+    queryKey: [`/gizmos`, compact({ search: params?.['search'] })].filter(
+      Boolean,
+    ),
     queryFn: async () => {
       const res = await gizmoService.getGizmos(params);
       if (res.errors.length) {

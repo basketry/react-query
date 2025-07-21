@@ -78,7 +78,7 @@ export function useDeleteWidgetFoo(
         throw new Error('Unexpected data error: Failed to get example');
       }
       queryClient.invalidateQueries({
-        queryKey: [`/widgets/${params.id}/foo`],
+        queryKey: [`/widgets/${params['id']}/foo`],
       });
       return res.data;
     },
@@ -228,7 +228,7 @@ export const putWidgetMutationOptions = () => {
 const useGetWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
   const widgetService = useWidgetService();
   return queryOptions({
-    queryKey: [`/widgets/${params.id}/foo`],
+    queryKey: [`/widgets/${params['id']}/foo`],
     queryFn: async () => {
       const res = await widgetService.getWidgetFoo(params);
       if (res.errors.length) {
@@ -244,7 +244,7 @@ const useGetWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
 export const getWidgetFooQueryOptions = (params: GetWidgetFooParams) => {
   const widgetService = getWidgetService();
   return queryOptions({
-    queryKey: [`/widgets/${params.id}/foo`],
+    queryKey: [`/widgets/${params['id']}/foo`],
     queryFn: async () => {
       const res = await widgetService.getWidgetFoo(params);
       if (res.errors.length) {
