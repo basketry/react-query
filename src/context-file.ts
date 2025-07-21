@@ -1,6 +1,13 @@
 import { camel, pascal } from 'case';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
+import {
+  buildContextName,
+  buildProviderName,
+  buildServiceHookName,
+  buildServiceGetterName,
+  buildServiceName,
+} from './name-helpers';
 
 export class ContextFile extends ModuleBuilder {
   private readonly react = new ImportBuilder('react');
@@ -23,23 +30,49 @@ export class ContextFile extends ModuleBuilder {
     const FetchLike = () => this.client.type('FetchLike');
     const OptionsType = () => this.client.type(optionsName);
 
-    yield `export interface ClientContextProps { fetch: ${FetchLike()}; options: ${OptionsType()}; }`;
-    yield `const ClientContext = ${createContext()}<ClientContextProps | undefined>( undefined );`;
+    // Use consistent naming from helper functions
+    const contextName = buildContextName(this.service);
+    const contextPropsName = pascal(`${contextName}_props`);
+    const providerName = buildProviderName(this.service);
+
+    yield `export interface ${contextPropsName} { fetch: ${FetchLike()}; options: ${OptionsType()}; }`;
+    yield `const ${contextName} = ${createContext()}<${contextPropsName} | undefined>( undefined );`;
     yield ``;
-    yield `export const ClientProvider: ${FC()}<${PropsWithChildren()}<ClientContextProps>> = ({ children, fetch, options }) => {`;
+
+    // Store context for non-hook access
+    yield `let currentContext: ${contextPropsName} | undefined;`;
+    yield ``;
+
+    yield `export const ${providerName}: ${FC()}<${PropsWithChildren()}<${contextPropsName}>> = ({ children, fetch, options }) => {`;
     yield `  const value = ${useMemo()}(() => ({ fetch, options }), [fetch, options.mapUnhandledException, options.mapValidationError, options.root]);`;
-    yield `  return <ClientContext.Provider value={value}>{children}</ClientContext.Provider>;`;
+    yield `  currentContext = value;`;
+    yield `  return <${contextName}.Provider value={value}>{children}</${contextName}.Provider>;`;
     yield `};`;
+
     for (const int of this.service.interfaces) {
-      const hookName = camel(`use_${int.name.value}_service`);
-      const localName = camel(`${int.name.value}_service`);
+      const hookName = buildServiceHookName(int);
+      const getterName = buildServiceGetterName(int);
+      const localName = buildServiceName(int);
       const interfaceName = pascal(`${int.name.value}_service`);
       const className = pascal(`http_${int.name.value}_service`);
 
+      // Add service getter function (v0.2.0)
+      yield ``;
+      yield `export const ${getterName} = () => {`;
+      yield `  if (!currentContext) { throw new Error('${getterName} called outside of ${providerName}'); }`;
+      yield `  const ${localName}: ${this.types.type(
+        interfaceName,
+      )} = new ${this.client.fn(
+        className,
+      )}(currentContext.fetch, currentContext.options);`;
+      yield `  return ${localName};`;
+      yield `};`;
+
+      // Keep legacy hook for backward compatibility (v0.1.0)
       yield ``;
       yield `export const ${hookName} = () => {`;
-      yield `  const context = ${useContext()}(ClientContext);`;
-      yield `  if (!context) { throw new Error('${hookName} must be used within a ClientProvider'); }`;
+      yield `  const context = ${useContext()}(${contextName});`;
+      yield `  if (!context) { throw new Error('${hookName} must be used within a ${providerName}'); }`;
       yield `  const ${localName}: ${this.types.type(
         interfaceName,
       )} = new ${this.client.fn(className)}(context.fetch, context.options);`;

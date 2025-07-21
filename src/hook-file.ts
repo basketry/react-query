@@ -17,11 +17,18 @@ import {
 } from '@basketry/typescript';
 import { from } from '@basketry/typescript/lib/utils';
 
-import { camel } from 'case';
+import { camel, pascal } from 'case';
 import { NamespacedReactQueryOptions } from './types';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
-import { getQueryOptionsName } from './name-factory';
+import {
+  getQueryOptionsName,
+  buildServiceGetterName,
+  buildQueryOptionsName,
+  buildMutationOptionsName,
+  buildInfiniteQueryOptionsName,
+  buildServiceHookName,
+} from './name-helpers';
 
 export class HookFile extends ModuleBuilder {
   constructor(
@@ -46,6 +53,7 @@ export class HookFile extends ModuleBuilder {
   ];
 
   *body(): Iterable<string> {
+    // === LEGACY HOOKS (v0.1.0) ===
     const useMutation = () => this.tanstack.fn('useMutation');
     const useQuery = () => this.tanstack.fn('useQuery');
     const useQueryClient = () => this.tanstack.fn('useQueryClient');
@@ -74,7 +82,6 @@ export class HookFile extends ModuleBuilder {
     )) {
       const name = this.getHookName(method);
       const suspenseName = this.getHookName(method, { suspense: true });
-      const infiniteName = this.getHookName(method, { infinite: true });
       const paramsType = from(buildParamsType(method));
       const httpMethod = getHttpMethodByName(this.service, method.name.value);
       const httpPath = this.getHttpPath(httpMethod);
@@ -87,10 +94,6 @@ export class HookFile extends ModuleBuilder {
         : '';
 
       const isGet = httpMethod?.verb.value === 'get' && !!httpPath;
-
-      if (isGet) {
-        yield* this.generateQueryOptions(method, httpPath);
-      }
 
       if (isGet) {
         const queryOptionsName = getQueryOptionsName(method);
@@ -134,11 +137,7 @@ export class HookFile extends ModuleBuilder {
           dataTypeName,
         )} | undefined, (${queryParamsType})[]>,'queryKey' | 'queryFn' | 'select'>`;
 
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export function ${name}(${[
           paramsExpression,
           optionsExpression,
@@ -147,11 +146,7 @@ export class HookFile extends ModuleBuilder {
         yield `  return ${useQuery()}({...defaultOptions, ...options});`;
         yield `}`;
         yield '';
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export function ${suspenseName}(${[
           paramsExpression,
           optionsExpression,
@@ -178,11 +173,7 @@ export class HookFile extends ModuleBuilder {
           typeName,
         )}, Error, ${type(paramsType)}, unknown>, 'mutationFn'>`;
 
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export function ${name}(${optionsExpression}) {`;
         yield `  const queryClient = ${useQueryClient()}();`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
@@ -194,15 +185,9 @@ export class HookFile extends ModuleBuilder {
         yield `      if (res.errors.length) { throw new ${CompositeError()}(res.errors); }`;
         yield `      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }`;
 
-        const queryKeys = new Set<string>();
-        queryKeys.add(this.buildResourceKey(httpPath, method)); // Invalidate this resource
-        queryKeys.add(
-          this.buildResourceKey(httpPath, method, { skipTerminalParams: true }), // Invalidate the parent resource group
-        );
-
-        for (const queryKey of Array.from(queryKeys)) {
-          yield `      queryClient.invalidateQueries({ queryKey: [${queryKey}] });`;
-        }
+        // Invalidate all queries for this interface
+        const interfaceName = camel(this.int.name.value);
+        yield `      queryClient.invalidateQueries({ queryKey: ['${interfaceName}'] });`;
         yield `      return res.data;`;
         yield `    },`;
         yield `    ...options,`;
@@ -223,7 +208,7 @@ export class HookFile extends ModuleBuilder {
         yield `function ${infiniteOptionsHook}(${paramsExpression}) {`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}();`;
         yield `  return {`;
-        yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
+        yield `    queryKey: ${this.buildQueryKey(method, {
           includeRelayParams: false,
           infinite: true,
         })},`;
@@ -241,11 +226,7 @@ export class HookFile extends ModuleBuilder {
         yield `  };`;
         yield `}`;
 
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export const ${this.getHookName(method, {
           suspense: false,
           infinite: true,
@@ -254,11 +235,7 @@ export class HookFile extends ModuleBuilder {
         yield `  return ${useInfiniteQuery()}(options);`;
         yield `}`;
 
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, undefined, true);
         yield `export const ${this.getHookName(method, {
           suspense: true,
           infinite: true,
@@ -269,6 +246,35 @@ export class HookFile extends ModuleBuilder {
       }
 
       yield '';
+    }
+    yield '';
+
+    // === NEW QUERY OPTIONS EXPORTS (v0.2.0) ===
+    yield '';
+    for (const method of this.int.methods) {
+      const httpMethod = getHttpMethodByName(this.service, method.name.value);
+      const httpPath = this.getHttpPath(httpMethod);
+      yield* this.generateAllQueryOptions(method, httpMethod, httpPath);
+    }
+  }
+
+  private *generateAllQueryOptions(
+    method: Method,
+    httpMethod: HttpMethod | undefined,
+    httpPath: HttpPath | undefined,
+  ): Iterable<string> {
+    if (!httpPath) return;
+
+    const isGet = httpMethod?.verb.value === 'get';
+
+    if (isGet) {
+      yield* this.generateQueryOptions(method, httpPath);
+
+      if (this.isRelayPaginated(method)) {
+        yield* this.generateInfiniteQueryOptions(method, httpPath);
+      }
+    } else {
+      yield* this.generateMutationOptions(method);
     }
   }
 
@@ -294,6 +300,109 @@ export class HookFile extends ModuleBuilder {
     }),`;
   }
 
+  private *generateMutationOptions(method: Method): Iterable<string> {
+    const mutationOptions = () => this.tanstack.fn('mutationOptions');
+    const CompositeError = () => this.runtime.fn('CompositeError');
+    const type = (t: string) => this.types.type(t);
+
+    const serviceName = camel(`${this.int.name.value}_service`);
+    const serviceGetterName = buildServiceGetterName(this.int);
+    const mutationOptionsName = buildMutationOptionsName(method);
+
+    const paramsType = from(buildParamsType(method));
+    const paramsExpression = method.parameters.length
+      ? `params: ${type(paramsType)}`
+      : '';
+    const paramsCallsite = method.parameters.length ? 'params' : '';
+
+    const returnType = getTypeByName(
+      this.service,
+      method.returnType?.typeName.value,
+    );
+    const dataType = getTypeByName(
+      this.service,
+      returnType?.properties.find((p) => p.name.value === 'data')?.typeName
+        .value,
+    );
+
+    const typeName = dataType ? buildTypeName(dataType) : 'void';
+
+    yield* buildDescription(
+      method.description,
+      undefined,
+      method.deprecated?.value,
+    );
+    yield `export const ${mutationOptionsName} = () => {`;
+    yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}()`;
+    yield `  return ${mutationOptions()}({`;
+    yield `    mutationFn: async (${paramsExpression}) => {`;
+    yield `      const res = await ${serviceName}.${camel(
+      method.name.value,
+    )}(${paramsCallsite});`;
+    yield `      if (res.errors.length) { throw new ${CompositeError()}(res.errors); }`;
+    yield `      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }`;
+    yield `      return res.data;`;
+    yield `    },`;
+    yield `  });`;
+    yield `};`;
+  }
+
+  private *generateInfiniteQueryOptions(
+    method: Method,
+    httpPath: HttpPath,
+  ): Iterable<string> {
+    const infiniteQueryOptions = () => this.tanstack.fn('infiniteQueryOptions');
+    const CompositeError = () => this.runtime.fn('CompositeError');
+    const type = (t: string) => this.types.type(t);
+    const applyPageParam = () => this.runtime.fn('applyPageParam');
+    const getInitialPageParam = () => this.runtime.fn('getInitialPageParam');
+    const getNextPageParam = () => this.runtime.fn('getNextPageParam');
+    const getPreviousPageParam = () => this.runtime.fn('getPreviousPageParam');
+    const PageParam = () => this.runtime.type('PageParam');
+
+    const serviceName = camel(`${this.int.name.value}_service`);
+    const serviceGetterName = buildServiceGetterName(this.int);
+    const infiniteOptionsName = buildInfiniteQueryOptionsName(method);
+
+    const paramsType = from(buildParamsType(method));
+    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
+    const paramsExpression = method.parameters.length
+      ? `params${q}: ${type(paramsType)}`
+      : '';
+
+    const methodExpression = `${serviceName}.${camel(method.name.value)}`;
+    const paramsCallsite = method.parameters.length
+      ? `${applyPageParam()}(params${q ? '?? {}' : ''}, pageParam)`
+      : '';
+
+    yield '';
+    yield* buildDescription(
+      method.description,
+      undefined,
+      method.deprecated?.value,
+    );
+    yield `export const ${infiniteOptionsName} = (${paramsExpression}) => {`;
+    yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}();`;
+    yield `  return ${infiniteQueryOptions()}({`;
+    yield `    queryKey: ${this.buildQueryKey(method, {
+      includeRelayParams: false,
+      infinite: true,
+    })},`;
+    yield `    queryFn: async ({ pageParam }: ${PageParam()}) => {`;
+    yield `      const res = await ${methodExpression}(${paramsCallsite});`;
+    yield `      if (res.errors.length) { throw new ${CompositeError()}(res.errors); }`;
+    yield `      return res;`;
+    yield `    },`;
+    yield* this.buildInfiniteSelectFn(method);
+    yield `    initialPageParam: ${getInitialPageParam()}(params${
+      q ? '?? {}' : ''
+    }),`;
+    yield `    ${getNextPageParam()},`;
+    yield `    ${getPreviousPageParam()},`;
+    yield `  });`;
+    yield `};`;
+  }
+
   private *generateQueryOptions(
     method: Method,
     httpPath: HttpPath,
@@ -303,8 +412,13 @@ export class HookFile extends ModuleBuilder {
     const type = (t: string) => this.types.type(t);
 
     const serviceName = camel(`${this.int.name.value}_service`);
-    const serviceHookName = camel(`use_${this.int.name.value}_service`);
-    const name = getQueryOptionsName(method);
+    const serviceGetterName = buildServiceGetterName(this.int);
+
+    // Keep the internal function for backward compatibility
+    const internalName = getQueryOptionsName(method);
+    // New exported function name
+    const exportedName = buildQueryOptionsName(method);
+
     const paramsType = from(buildParamsType(method));
     const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
     const paramsExpression = method.parameters.length
@@ -323,10 +437,40 @@ export class HookFile extends ModuleBuilder {
         (prop) => prop.name.value !== 'data' && prop.name.value !== 'errors',
       );
 
-    yield `const ${name} = (${paramsExpression}) => {`;
-    yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
+    // Internal function for backward compatibility with hooks
+    yield `const ${internalName} = (${paramsExpression}) => {`;
+    yield `  const ${serviceName} = ${this.context.fn(
+      buildServiceHookName(this.int),
+    )}()`;
     yield `  return ${queryOptions()}({`;
-    yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
+    yield `    queryKey: ${this.buildQueryKey(method, {
+      includeRelayParams: true,
+    })},`;
+    yield `    queryFn: async () => {`;
+    yield `      const res = await ${serviceName}.${camel(
+      method.name.value,
+    )}(${paramsCallsite});`;
+    yield `      if (res.errors.length) { throw new ${CompositeError()}(res.errors); }`;
+    yield `      else if (!res.data) { throw new Error('Unexpected data error: Failed to get example'); }`;
+    yield `      return res;`;
+    yield `    },`;
+    if (!skipSelect) {
+      yield `    select: (data) => data.data,`;
+    }
+    yield `  });`;
+    yield `};`;
+
+    // New exported query options function (v0.2.0)
+    yield '';
+    yield* buildDescription(
+      method.description,
+      undefined,
+      method.deprecated?.value,
+    );
+    yield `export const ${exportedName} = (${paramsExpression}) => {`;
+    yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}()`;
+    yield `  return ${queryOptions()}({`;
+    yield `    queryKey: ${this.buildQueryKey(method, {
       includeRelayParams: true,
     })},`;
     yield `    queryFn: async () => {`;
@@ -362,7 +506,11 @@ export class HookFile extends ModuleBuilder {
       );
     }
 
-    return camel(`use_${name}`);
+    return camel(
+      `use_${options?.suspense ? 'suspense_' : ''}${
+        options?.infinite ? 'infinite_' : ''
+      }${name}`,
+    );
   }
 
   private getHttpPath(
@@ -384,71 +532,25 @@ export class HookFile extends ModuleBuilder {
   }
 
   private buildQueryKey(
-    httpPath: HttpPath,
     method: Method,
     options?: { includeRelayParams?: boolean; infinite?: boolean },
   ): string {
-    const compact = () => this.runtime.fn('compact');
+    const interfaceName = camel(this.int.name.value);
+    const methodName = camel(method.name.value);
 
-    const resourceKey = this.buildResourceKey(httpPath, method);
-    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
+    const queryKey = [`'${interfaceName}'`, `'${methodName}'`];
 
-    const httpMethod = getHttpMethodByName(this.service, method.name.value);
-    const queryParams = httpMethod?.parameters.filter((p) =>
-      isCacheParam(p, options?.includeRelayParams ?? false),
-    );
-
-    const queryKey = [resourceKey];
-
-    let couldHaveNullQueryParams = false;
-    if (queryParams?.length) {
-      couldHaveNullQueryParams = queryParams.every((hp) => {
-        const param = method.parameters.find(
-          (p) => camel(p.name.value) === camel(hp.name.value),
-        );
-        return param ? !isRequired(param) : true;
-      });
-      queryKey.push(
-        `${compact()}({${queryParams
-          .map((p) => `${p.name.value}: params${q}.${p.name.value}`)
-          .join(',')}})`,
-      );
+    if (method.parameters.length) {
+      queryKey.push(`params || {}`);
+    } else {
+      queryKey.push('{}');
     }
 
     if (options?.infinite) {
-      queryKey.push('{inifinite: true}');
+      queryKey.push('{infinite: true}');
     }
 
-    return `[${queryKey.join(', ')}]${
-      couldHaveNullQueryParams ? '.filter(Boolean)' : ''
-    }`;
-  }
-
-  private buildResourceKey(
-    httpPath: HttpPath,
-    method: Method,
-    options?: { skipTerminalParams: boolean },
-  ): string {
-    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
-
-    const parts = httpPath.path.value.split('/');
-
-    if (options?.skipTerminalParams) {
-      while (isPathParam(parts[parts.length - 1])) {
-        parts.pop();
-      }
-    }
-
-    const path = parts.filter(Boolean).map((part) => {
-      if (part.startsWith('{') && part.endsWith('}')) {
-        const param = part.slice(1, -1);
-        return `\${params${q}.${camel(param)}}`;
-      }
-
-      return part;
-    });
-
-    return `\`/${path.join('/')}\``;
+    return `[${queryKey.join(', ')}]`;
   }
 
   private isRelayPaginated(method: Method): boolean {
