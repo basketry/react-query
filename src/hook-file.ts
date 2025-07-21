@@ -28,7 +28,7 @@ import {
   buildMutationOptionsName,
   buildInfiniteQueryOptionsName,
   buildServiceHookName,
-} from './name-factory';
+} from './name-helpers';
 
 export class HookFile extends ModuleBuilder {
   constructor(

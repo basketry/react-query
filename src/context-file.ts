@@ -1,10 +1,15 @@
 import { camel, pascal } from 'case';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
-import { NameFactory } from './name-factory';
+import {
+  buildContextName,
+  buildProviderName,
+  buildServiceHookName,
+  buildServiceGetterName,
+  buildServiceName,
+} from './name-helpers';
 
 export class ContextFile extends ModuleBuilder {
-  private readonly nameFactory = new NameFactory(this.service, this.options);
   private readonly react = new ImportBuilder('react');
   private readonly client = new ImportBuilder(
     this.options?.reactQuery?.clientModule ?? '../http-client',
@@ -25,10 +30,10 @@ export class ContextFile extends ModuleBuilder {
     const FetchLike = () => this.client.type('FetchLike');
     const OptionsType = () => this.client.type(optionsName);
 
-    // Use consistent naming from NameFactory
-    const contextName = this.nameFactory.buildContextName();
+    // Use consistent naming from helper functions
+    const contextName = buildContextName(this.service);
     const contextPropsName = pascal(`${contextName}_props`);
-    const providerName = this.nameFactory.buildProviderName();
+    const providerName = buildProviderName(this.service);
 
     yield `export interface ${contextPropsName} { fetch: ${FetchLike()}; options: ${OptionsType()}; }`;
     yield `const ${contextName} = ${createContext()}<${contextPropsName} | undefined>( undefined );`;
@@ -45,9 +50,9 @@ export class ContextFile extends ModuleBuilder {
     yield `};`;
 
     for (const int of this.service.interfaces) {
-      const hookName = this.nameFactory.buildServiceHookName(int);
-      const getterName = this.nameFactory.buildServiceGetterName(int);
-      const localName = this.nameFactory.buildServiceName(int);
+      const hookName = buildServiceHookName(int);
+      const getterName = buildServiceGetterName(int);
+      const localName = buildServiceName(int);
       const interfaceName = pascal(`${int.name.value}_service`);
       const className = pascal(`http_${int.name.value}_service`);
 
