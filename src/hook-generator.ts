@@ -21,12 +21,12 @@ class HookGenerator {
     private readonly options: NamespacedReactQueryOptions,
   ) {}
 
-  generate(): File[] {
+  async generate(): Promise<File[]> {
     const files: File[] = [];
 
     files.push({
       path: buildFilePath(['hooks', 'runtime.ts'], this.service, this.options),
-      contents: format(
+      contents: await format(
         from(new RuntimeFile(this.service, this.options).build()),
         this.options,
       ),
@@ -34,7 +34,7 @@ class HookGenerator {
 
     files.push({
       path: buildFilePath(['hooks', 'context.tsx'], this.service, this.options),
-      contents: format(
+      contents: await format(
         from(new ContextFile(this.service, this.options).build()),
         this.options,
       ),
@@ -49,7 +49,7 @@ class HookGenerator {
     });
 
     for (const int of this.service.interfaces) {
-      const contents = format(
+      const contents = await format(
         from(new HookFile(this.service, this.options, int).build()),
         this.options,
       );

@@ -35,7 +35,7 @@ export class ReadmeFile {
 
   private queryMethod(): MethodInfo | undefined {
     for (const int of this.service.interfaces) {
-      const httpMethod = int.protocols.http
+      const httpMethod = (int.protocols?.http ?? [])
         ?.flatMap((http) => http.methods)
         .find((method) => method.verb.value === 'get');
 
@@ -64,7 +64,7 @@ export class ReadmeFile {
       for (const method of int.methods) {
         if (!isRelayPaginaged(method, this.service)) continue;
 
-        const httpMethod = int.protocols.http
+        const httpMethod = (int.protocols?.http ?? [])
           ?.flatMap((http) => http.methods)
           .find(
             (m) => m.verb.value === 'get' && m.name.value === method.name.value,
@@ -91,7 +91,7 @@ export class ReadmeFile {
 
   private mutationMethod(): MethodInfo | undefined {
     for (const int of this.service.interfaces) {
-      const httpMethod = int.protocols.http
+      const httpMethod = (int.protocols?.http ?? [])
         ?.flatMap((http) => http.methods)
         .find((method) => method.verb.value !== 'get');
 
