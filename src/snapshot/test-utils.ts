@@ -23,7 +23,7 @@ export async function* generateFiles(): AsyncIterable<File> {
     engine.runParser();
     engine.runGenerators();
 
-    for (const file of engine.output.files) {
+    for (const file of engine.files) {
       if (file.path[0] !== '.gitattributes') {
         yield {
           path: [process.cwd(), 'src', 'snapshot', ...file.path],

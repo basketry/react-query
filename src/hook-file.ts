@@ -6,7 +6,7 @@ import {
   getUnionByName,
   HttpMethod,
   HttpParameter,
-  HttpPath,
+  HttpRoute,
   Interface,
   isRequired,
   Method,
@@ -95,8 +95,8 @@ export class HookFile extends ModuleBuilder {
       });
       const paramsType = from(buildParamsType(method));
       const httpMethod = getHttpMethodByName(this.service, method.name.value);
-      const httpPath = this.getHttpPath(httpMethod);
-      const q = method.parameters.every((param) => !isRequired(param))
+      const httpRoute = this.getHttpRoute(httpMethod);
+      const q = method.parameters.every((param) => !isRequired(param.value))
         ? '?'
         : '';
 
@@ -104,10 +104,10 @@ export class HookFile extends ModuleBuilder {
         ? `params${q}: ${type(paramsType)}`
         : '';
 
-      const isGet = httpMethod?.verb.value === 'get' && !!httpPath;
+      const isGet = httpMethod?.verb.value === 'get' && !!httpRoute;
 
       if (isGet) {
-        yield* this.generateQueryOptions(method, httpPath);
+        yield* this.generateQueryOptions(method, httpRoute);
       }
 
       if (isGet) {
@@ -118,11 +118,7 @@ export class HookFile extends ModuleBuilder {
 
         const optionsExpression = `options?: Omit<${UndefinedInitialDataOptions()}<${genericTypes}>,'queryKey' | 'queryFn' | 'select'>`;
 
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, method.deprecated?.value);
         yield `export function ${name}(${[
           paramsExpression,
           optionsExpression,
@@ -131,11 +127,7 @@ export class HookFile extends ModuleBuilder {
         yield `  return ${useQuery()}({...defaultOptions, ...options});`;
         yield `}`;
         yield '';
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, method.deprecated?.value);
         yield `export function ${suspenseName}(${[
           paramsExpression,
           optionsExpression,
@@ -143,7 +135,7 @@ export class HookFile extends ModuleBuilder {
         yield `  const defaultOptions = ${queryOptionsName}(${paramsCallsite});`;
         yield `  return ${useSuspenseQuery()}({...defaultOptions, ...options});`;
         yield `}`;
-      } else if (httpPath) {
+      } else if (httpRoute) {
         const paramsCallsite = method.parameters.length ? 'params' : '';
 
         const { envelope } = this.unwrapEnvelop(method);
@@ -155,11 +147,7 @@ export class HookFile extends ModuleBuilder {
 
         const optionsExpression = `options?: Omit<${mutationOptions()}, 'mutationFn'>`;
 
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, method.deprecated?.value);
         yield `export function ${name}(${optionsExpression}) {`;
         yield `  const queryClient = ${useQueryClient()}();`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
@@ -176,15 +164,17 @@ export class HookFile extends ModuleBuilder {
         yield `      }`;
 
         const queryKeys = new Set<string>();
-        queryKeys.add(this.buildResourceKey(httpPath, method)); // Invalidate this resource
+        queryKeys.add(this.buildResourceKey(httpRoute, method)); // Invalidate this resource
         queryKeys.add(
-          this.buildResourceKey(httpPath, method, { skipTerminalParams: true }), // Invalidate the parent resource group
+          this.buildResourceKey(httpRoute, method, {
+            skipTerminalParams: true,
+          }), // Invalidate the parent resource group
         );
 
         for (const queryKey of Array.from(queryKeys)) {
           yield `      queryClient.invalidateQueries({ queryKey: [${queryKey}] });`;
         }
-        if (dataProp && !isRequired(dataProp)) {
+        if (dataProp && !isRequired(dataProp.value)) {
           yield `      ${assert()}(res.data);`;
         }
         yield `      return res.data;`;
@@ -211,7 +201,7 @@ export class HookFile extends ModuleBuilder {
         yield `function ${infiniteOptionsHook}(${paramsExpression}) {`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}();`;
         yield `  return {`;
-        yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
+        yield `    queryKey: ${this.buildQueryKey(httpRoute, method, {
           includeRelayParams: false,
           infinite: true,
         })},`;
@@ -234,11 +224,7 @@ export class HookFile extends ModuleBuilder {
         yield `  };`;
         yield `}`;
 
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, method.deprecated?.value);
         yield `export const ${this.nameFactory.buildHookName(method, {
           suspense: false,
           infinite: true,
@@ -247,11 +233,7 @@ export class HookFile extends ModuleBuilder {
         yield `  return ${useInfiniteQuery()}(options);`;
         yield `}`;
 
-        yield* buildDescription(
-          method.description,
-          undefined,
-          method.deprecated?.value,
-        );
+        yield* buildDescription(method.description, method.deprecated?.value);
         yield `export const ${this.nameFactory.buildHookName(method, {
           suspense: true,
           infinite: true,
@@ -312,7 +294,7 @@ export class HookFile extends ModuleBuilder {
       dataTypeName = dataProp && dataType ? buildTypeName(dataType) : 'void';
     }
 
-    const dataTypeArray = (!skipSelect && dataProp?.isArray) ?? false;
+    const dataTypeArray = (!skipSelect && dataProp?.value.isArray) ?? false;
 
     return {
       returnTypeName,
@@ -329,13 +311,14 @@ export class HookFile extends ModuleBuilder {
 
     const returnType = getTypeByName(
       this.service,
-      method.returnType?.typeName.value,
+      method.returns?.value.typeName.value,
     );
 
     const returnTypeName = returnType ? buildTypeName(returnType) : 'void';
 
     const optional = returnType?.properties.some(
-      (prop) => prop.name.value.toLowerCase() === 'data' && !isRequired(prop),
+      (prop) =>
+        prop.name.value.toLowerCase() === 'data' && !isRequired(prop.value),
     );
 
     yield `    select: (data: ${InfiniteData()}<${type(
@@ -376,7 +359,7 @@ export class HookFile extends ModuleBuilder {
 
   private *generateQueryOptions(
     method: Method,
-    httpPath: HttpPath,
+    httpRoute: HttpRoute,
   ): Iterable<string> {
     const queryOptions = this.buildQueryOptions(method);
     const QueryError = () => this.runtime.type('QueryError');
@@ -387,7 +370,9 @@ export class HookFile extends ModuleBuilder {
     const serviceHookName = camel(`use_${this.int.name.value}_service`);
     const name = this.nameFactory.buildQueryOptionsName(method);
     const paramsType = from(buildParamsType(method));
-    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
+    const q = method.parameters.every((param) => !isRequired(param.value))
+      ? '?'
+      : '';
     const paramsExpression = method.parameters.length
       ? `params${q}: ${type(paramsType)}`
       : '';
@@ -400,7 +385,7 @@ export class HookFile extends ModuleBuilder {
     yield `const ${name} = (${paramsExpression}) => {`;
     yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
     yield `  return ${queryOptions()}({`;
-    yield `    queryKey: ${this.buildQueryKey(httpPath, method, {
+    yield `    queryKey: ${this.buildQueryKey(httpRoute, method, {
       includeRelayParams: true,
     })},`;
     yield `    queryFn: async () => {`;
@@ -416,7 +401,7 @@ export class HookFile extends ModuleBuilder {
     yield `      return res;`;
     yield `    },`;
     if (!skipSelect) {
-      if (dataProp && !isRequired(dataProp)) {
+      if (dataProp && !isRequired(dataProp.value)) {
         yield `    select: (data) => { ${assert()}(data.data); return data.data},`;
       } else {
         yield `    select: (data) => data.data,`;
@@ -426,16 +411,16 @@ export class HookFile extends ModuleBuilder {
     yield `};`;
   }
 
-  private getHttpPath(
+  private getHttpRoute(
     httpMethod: HttpMethod | undefined,
-  ): HttpPath | undefined {
+  ): HttpRoute | undefined {
     if (!httpMethod) return undefined;
 
     for (const int of this.service.interfaces) {
-      for (const httpPath of int.protocols.http) {
-        for (const method of httpPath.methods) {
+      for (const httpRoute of int.protocols?.http ?? []) {
+        for (const method of httpRoute.methods) {
           if (method.name.value === httpMethod.name.value) {
-            return httpPath;
+            return httpRoute;
           }
         }
       }
@@ -445,14 +430,16 @@ export class HookFile extends ModuleBuilder {
   }
 
   private buildQueryKey(
-    httpPath: HttpPath,
+    httpRoute: HttpRoute,
     method: Method,
     options?: { includeRelayParams?: boolean; infinite?: boolean },
   ): string {
     const compact = () => this.runtime.fn('compact');
 
-    const resourceKey = this.buildResourceKey(httpPath, method);
-    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
+    const resourceKey = this.buildResourceKey(httpRoute, method);
+    const q = method.parameters.every((param) => !isRequired(param.value))
+      ? '?'
+      : '';
 
     const httpMethod = getHttpMethodByName(this.service, method.name.value);
     const queryParams = httpMethod?.parameters.filter((p) =>
@@ -470,7 +457,7 @@ export class HookFile extends ModuleBuilder {
             const param = method.parameters.find(
               (mp) => camel(mp.name.value) === camel(p.name.value),
             );
-            const isArray = param?.isArray ?? false;
+            const isArray = param?.value.isArray ?? false;
             return `${p.name.value}: params${q}.${p.name.value}${
               isArray ? ".join(',')" : ''
             }`;
@@ -489,13 +476,15 @@ export class HookFile extends ModuleBuilder {
   }
 
   private buildResourceKey(
-    httpPath: HttpPath,
+    httpRoute: HttpRoute,
     method: Method,
     options?: { skipTerminalParams: boolean },
   ): string {
-    const q = method.parameters.every((param) => !isRequired(param)) ? '?' : '';
+    const q = method.parameters.every((param) => !isRequired(param.value))
+      ? '?'
+      : '';
 
-    const parts = httpPath.path.value.split('/');
+    const parts = httpRoute.pattern.value.split('/');
 
     if (options?.skipTerminalParams) {
       while (isPathParam(parts[parts.length - 1])) {
@@ -524,9 +513,9 @@ export class HookFile extends ModuleBuilder {
     returnType: Type | Enum | Union | undefined;
   } {
     const returnType =
-      getTypeByName(this.service, method.returnType?.typeName.value) ??
-      getEnumByName(this.service, method.returnType?.typeName.value) ??
-      getUnionByName(this.service, method.returnType?.typeName.value);
+      getTypeByName(this.service, method.returns?.value.typeName.value) ??
+      getEnumByName(this.service, method.returns?.value.typeName.value) ??
+      getUnionByName(this.service, method.returns?.value.typeName.value);
     if (!returnType) return { envelope: undefined, returnType: undefined };
 
     const dataProp =
@@ -551,15 +540,15 @@ export class HookFile extends ModuleBuilder {
     if (!errorProp) return { envelope: undefined, returnType };
 
     const dataType =
-      getTypeByName(this.service, dataProp?.typeName.value) ??
-      getEnumByName(this.service, dataProp?.typeName.value) ??
-      getUnionByName(this.service, dataProp?.typeName.value);
+      getTypeByName(this.service, dataProp?.value.typeName.value) ??
+      getEnumByName(this.service, dataProp?.value.typeName.value) ??
+      getUnionByName(this.service, dataProp?.value.typeName.value);
     if (!dataType) return { envelope: undefined, returnType };
 
     const errorType =
-      getTypeByName(this.service, errorProp?.typeName.value) ??
-      getEnumByName(this.service, errorProp?.typeName.value) ??
-      getUnionByName(this.service, errorProp?.typeName.value);
+      getTypeByName(this.service, errorProp?.value.typeName.value) ??
+      getEnumByName(this.service, errorProp?.value.typeName.value) ??
+      getUnionByName(this.service, errorProp?.value.typeName.value);
     if (!errorType) return { envelope: undefined, returnType };
 
     return {
@@ -581,7 +570,7 @@ function isCacheParam(
   param: HttpParameter,
   includeRelayParams: boolean,
 ): boolean {
-  if (param.in.value !== 'query') return false;
+  if (param.location.value !== 'query') return false;
 
   if (!includeRelayParams) {
     return (
