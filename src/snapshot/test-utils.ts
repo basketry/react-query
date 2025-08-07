@@ -7,7 +7,7 @@ const withVersion = `${pkg.name}@${pkg.version}`;
 const withoutVersion = `${pkg.name}@{{version}}`;
 
 export async function* generateFiles(): AsyncIterable<File> {
-  const service = require('basketry/lib/example-ir.json');
+  const service = require('@basketry/ir/lib/example.json');
 
   const options: NamespacedReactQueryOptions = {};
 
@@ -27,7 +27,7 @@ export async function* generateFiles(): AsyncIterable<File> {
       if (file.path[0] !== '.gitattributes') {
         yield {
           path: [process.cwd(), 'src', 'snapshot', ...file.path],
-          contents: file.contents.replace(withVersion, withoutVersion),
+          contents: (await file.contents).replace(withVersion, withoutVersion),
         };
       }
     }
