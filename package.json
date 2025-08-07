@@ -50,8 +50,8 @@
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "@basketry/typescript": "^0.2.0-alpha.3",
-    "basketry": "^0.2.0-alpha.20",
+    "@basketry/typescript": "^0.2.0-rc.0",
+    "basketry": "^0.2.0-rc.2",
     "case": "^1.6.3",
     "pluralize": "^8.0.0",
     "prettier": "^2.5.1"
