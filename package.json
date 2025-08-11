@@ -31,7 +31,8 @@
   "bugs": {
     "url": "https://github.com/basketry/react-query/issues"
   },
-  "homepage": "https://github.com/basketry/react-query#readme",
+  "homepage": "https://basketry.io/docs/components/@basketry/react-query",
+  "funding": "https://github.com/sponsors/basketry",
   "devDependencies": {
     "@basketry/dotfiles": "^1.1.0",
     "@types/jest": "^27.4.0",
