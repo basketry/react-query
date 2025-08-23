@@ -1,4 +1,4 @@
-import { Interface, Method, Service } from 'basketry';
+import { getHttpMethodByName, Interface, Method, Service } from 'basketry';
 import { camel, pascal } from 'case';
 
 export function getQueryOptionsName(method: Method): string {
@@ -35,4 +35,28 @@ export function buildProviderName(service: Service): string {
 
 export function buildServiceName(int: Interface): string {
   return camel(`${int.name.value}_service`);
+}
+
+export function buildHookName(
+  method: Method,
+  service: Service,
+  options?: { infinite?: boolean; suspense?: boolean },
+): string {
+  const name = method.name.value;
+  const httpMethod = getHttpMethodByName(service, name);
+
+  if (
+    httpMethod?.verb.value === 'get' &&
+    name.toLocaleLowerCase().startsWith('get')
+  ) {
+    // Query Hook
+    return camel(
+      `use_${options?.suspense ? 'suspense_' : ''}${
+        options?.infinite ? 'infinite_' : ''
+      }${name.slice(3)}`,
+    );
+  }
+
+  // Mutation Hook
+  return camel(`use_${name}`);
 }

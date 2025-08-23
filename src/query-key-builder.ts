@@ -159,7 +159,7 @@ export class QueryKeyBuilder extends ModuleBuilder {
     // Register the type with the import builder
     this.types.type(paramsType);
 
-    const hasRequired = method.parameters.some((p) => isRequired(p));
+    const hasRequired = method.parameters.some((p) => isRequired(p.value));
     return hasRequired ? paramsType : `${paramsType} | undefined`;
   }
 }

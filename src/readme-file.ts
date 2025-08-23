@@ -9,7 +9,7 @@ import { plural } from 'pluralize';
 import { format, Options } from 'prettier';
 
 import { NamespacedReactQueryOptions } from './types';
-import { NameFactory } from './name-factory';
+import { buildHookName, buildProviderName, buildServiceName, buildServiceHookName } from './name-helpers';
 import { isRelayPaginaged } from './utils';
 
 type MethodInfo = {
@@ -27,7 +27,6 @@ export class ReadmeFile {
     private readonly options: NamespacedReactQueryOptions,
   ) {}
 
-  private readonly nameFactory = new NameFactory(this.service, this.options);
 
   private import(...path: string[]) {
     return `./${buildFilePath(path, this.service, this.options).join('/')}`;
@@ -46,8 +45,8 @@ export class ReadmeFile {
           return {
             method,
             interface: int,
-            hookName: this.nameFactory.buildHookName(method),
-            suspenseHookName: this.nameFactory.buildHookName(method, {
+            hookName: buildHookName(method, this.service),
+            suspenseHookName: buildHookName(method, this.service, {
               suspense: true,
             }),
             importPath: this.import('hooks', kebab(plural(int.name.value))),
@@ -75,8 +74,8 @@ export class ReadmeFile {
         return {
           method,
           interface: int,
-          hookName: this.nameFactory.buildHookName(method, { infinite: true }),
-          suspenseHookName: this.nameFactory.buildHookName(method, {
+          hookName: buildHookName(method, this.service, { infinite: true }),
+          suspenseHookName: buildHookName(method, this.service, {
             suspense: true,
             infinite: true,
           }),
@@ -102,8 +101,8 @@ export class ReadmeFile {
           return {
             method,
             interface: int,
-            hookName: this.nameFactory.buildHookName(method),
-            suspenseHookName: this.nameFactory.buildHookName(method, {
+            hookName: buildHookName(method, this.service),
+            suspenseHookName: buildHookName(method, this.service, {
               suspense: true,
             }),
             importPath: this.import('hooks', kebab(plural(int.name.value))),
@@ -150,7 +149,7 @@ For more information about React Query, [read the official docs](https://tanstac
 
   private *buildSetup(): Iterable<string> {
     const contextImportPath = this.import('hooks', 'context');
-    const providerName = this.nameFactory.buildProviderName();
+    const providerName = buildProviderName(this.service);
     yield `
 ## Setup
 
@@ -348,10 +347,10 @@ Handled errors will be of type \`T\` and are generally things like validation er
     const queryMethod = this.queryMethod();
 
     const int = this.service.interfaces[0];
-    const serviceName = this.nameFactory.buildServiceName(int);
-    const serviceHookName = this.nameFactory.buildServiceHookName(int);
+    const serviceName = buildServiceName(int);
+    const serviceHookName = buildServiceHookName(int);
 
-    const providerName = this.nameFactory.buildProviderName();
+    const providerName = buildProviderName(this.service);
 
     yield `
 ## Services

@@ -1,4 +1,4 @@
-import { camel, pascal } from 'case';
+import { pascal } from 'case';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
 import {
@@ -30,12 +30,11 @@ export class ContextFile extends ModuleBuilder {
     const FetchLike = () => this.client.type('FetchLike');
     const OptionsType = () => this.client.type(optionsName);
 
-    // Use consistent naming from helper functions
     const contextName = buildContextName(this.service);
     const contextPropsName = pascal(`${contextName}_props`);
     const providerName = buildProviderName(this.service);
 
-    yield `export interface ${contextPropsName} { fetch: ${FetchLike()}; options: ${OptionsType()}; }`;
+    yield `export interface ${contextPropsName} extends ${OptionsType()} { fetch?: ${FetchLike()}; }`;
     yield `const ${contextName} = ${createContext()}<${contextPropsName} | undefined>( undefined );`;
     yield ``;
 
@@ -49,14 +48,15 @@ export class ContextFile extends ModuleBuilder {
     yield `  return <${contextName}.Provider value={value}>{children}</${contextName}.Provider>;`;
     yield `};`;
 
-    for (const int of this.service.interfaces) {
+    const sortedInterfaces = [...this.service.interfaces].sort((a, b) => a.name.value.localeCompare(b.name.value))
+    for (const int of sortedInterfaces) {
       const hookName = buildServiceHookName(int);
       const getterName = buildServiceGetterName(int);
       const localName = buildServiceName(int);
       const interfaceName = pascal(`${int.name.value}_service`);
       const className = pascal(`http_${int.name.value}_service`);
 
-      // Add service getter function (v0.2.0)
+      // Add service getter function (v0.3.0)
       yield ``;
       yield `export const ${getterName} = () => {`;
       yield `  if (!currentContext) { throw new Error('${getterName} called outside of ${providerName}'); }`;
@@ -68,14 +68,14 @@ export class ContextFile extends ModuleBuilder {
       yield `  return ${localName};`;
       yield `};`;
 
-      // Keep legacy hook for backward compatibility (v0.1.0)
+      // Keep legacy hook for backward compatibility (v0.2.0)
       yield ``;
       yield `export const ${hookName} = () => {`;
       yield `  const context = ${useContext()}(${contextName});`;
       yield `  if (!context) { throw new Error('${hookName} must be used within a ${providerName}'); }`;
       yield `  const ${localName}: ${this.types.type(
         interfaceName,
-      )} = new ${this.client.fn(className)}(context.fetch, context.options);`;
+      )} = new ${this.client.fn(className)}(context.fetch ?? window.fetch.bind(window), context);`;
       yield `  return ${localName};`;
       yield `}`;
     }
