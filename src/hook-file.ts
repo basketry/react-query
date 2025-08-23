@@ -71,7 +71,7 @@ export class HookFile extends ModuleBuilder {
     // === LEGACY HOOKS (deprecated) ===
     yield '// Legacy hooks - deprecated, use query/mutation options exports instead';
     yield '';
-    
+
     const useMutation = () => this.tanstack.fn('useMutation');
     const useQuery = () => this.tanstack.fn('useQuery');
     const useQueryClient = () => this.tanstack.fn('useQueryClient');
@@ -175,7 +175,7 @@ export class HookFile extends ModuleBuilder {
         )}[]> = { kind: 'handled', payload: res.errors };`;
         yield `        throw handled`;
         yield `      }`;
-        
+
         // Invalidate all queries for this interface using the simpler pattern
         const interfaceName = camel(this.int.name.value);
         yield `      queryClient.invalidateQueries({ queryKey: ['${interfaceName}'] });`;
@@ -206,8 +206,7 @@ export class HookFile extends ModuleBuilder {
         yield `function ${infiniteOptionsHook}(${paramsExpression}) {`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}();`;
         yield `  return {`;
-        yield `    queryKey: ${this.buildQueryKey(httpRoute, method, {
-          includeRelayParams: false,
+        yield `    queryKey: ${this.buildQueryKey(method, {
           infinite: true,
         })},`;
         yield `    queryFn: async ({ pageParam }: ${PageParam()}) => {`;
@@ -221,9 +220,8 @@ export class HookFile extends ModuleBuilder {
         yield `      return res;`;
         yield `    },`;
         yield* this.buildInfiniteSelectFn(method);
-        yield `    initialPageParam: ${getInitialPageParam()}(params${
-          q ? '?? {}' : ''
-        }),`;
+        yield `    initialPageParam: ${getInitialPageParam()}(params${q ? '?? {}' : ''
+          }),`;
         yield `    ${getNextPageParam()},`;
         yield `    ${getPreviousPageParam()},`;
         yield `  };`;
@@ -252,12 +250,12 @@ export class HookFile extends ModuleBuilder {
 
       yield '';
     }
-    
+
     // === NEW QUERY/MUTATION OPTIONS EXPORTS ===
     yield '';
     yield '// Query and mutation options exports for React Query v5';
     yield '';
-    
+
     for (const method of this.int.methods) {
       const httpMethod = getHttpMethodByName(this.service, method.name.value);
       const httpRoute = this.getHttpRoute(httpMethod);
@@ -341,9 +339,8 @@ export class HookFile extends ModuleBuilder {
 
     yield `    select: (data: ${InfiniteData()}<${type(
       returnTypeName,
-    )}, string | undefined>) => data.pages.flatMap((page) => page.data${
-      optional ? ' ?? []' : ''
-    }),`;
+    )}, string | undefined>) => data.pages.flatMap((page) => page.data${optional ? ' ?? []' : ''
+      }),`;
   }
 
   private buildQueryOptions(method: Method): () => string {
@@ -403,9 +400,7 @@ export class HookFile extends ModuleBuilder {
     yield `const ${name} = (${paramsExpression}) => {`;
     yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
     yield `  return ${queryOptions()}({`;
-    yield `    queryKey: ${this.buildQueryKey(httpRoute, method, {
-      includeRelayParams: true,
-    })},`;
+    yield `    queryKey: ${this.buildQueryKey(method)},`;
     yield `    queryFn: async () => {`;
     yield `      const res = await ${guard()}(${serviceName}.${camel(
       method.name.value,
@@ -447,16 +442,6 @@ export class HookFile extends ModuleBuilder {
     return undefined;
   }
 
-  private buildQueryKey(
-    httpRoute: HttpRoute,
-    method: Method,
-    options?: { includeRelayParams?: boolean; infinite?: boolean },
-  ): string {
-    // Use the same simple query key pattern for legacy hooks
-    return this.buildSimpleQueryKey(method, options);
-  }
-
-
   private isRelayPaginated(method: Method): boolean {
     return isRelayPaginaged(method, this.service);
   }
@@ -474,21 +459,21 @@ export class HookFile extends ModuleBuilder {
     const dataProp =
       returnType.kind === 'Type'
         ? returnType.properties.find(
-            (p) =>
-              p.name.value.toLocaleLowerCase() === 'data' ||
-              p.name.value.toLocaleLowerCase() === 'value' ||
-              p.name.value.toLocaleLowerCase() === 'values',
-          )
+          (p) =>
+            p.name.value.toLocaleLowerCase() === 'data' ||
+            p.name.value.toLocaleLowerCase() === 'value' ||
+            p.name.value.toLocaleLowerCase() === 'values',
+        )
         : undefined;
     if (!dataProp) return { envelope: undefined, returnType };
 
     const errorProp =
       returnType.kind === 'Type'
         ? returnType.properties.find(
-            (p) =>
-              p.name.value.toLocaleLowerCase() === 'error' ||
-              p.name.value.toLocaleLowerCase() === 'errors',
-          )
+          (p) =>
+            p.name.value.toLocaleLowerCase() === 'error' ||
+            p.name.value.toLocaleLowerCase() === 'errors',
+        )
         : undefined;
     if (!errorProp) return { envelope: undefined, returnType };
 
@@ -563,7 +548,7 @@ export class HookFile extends ModuleBuilder {
     yield `export const ${exportedName} = (${paramsExpression}) => {`;
     yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}()`;
     yield `  return ${queryOptions()}({`;
-    yield `    queryKey: ${this.buildSimpleQueryKey(method)},`;
+    yield `    queryKey: ${this.buildQueryKey(method)},`;
     yield `    queryFn: async () => {`;
     yield `      const res = await ${guard()}(${serviceName}.${camel(
       method.name.value,
@@ -673,7 +658,7 @@ export class HookFile extends ModuleBuilder {
     yield `export const ${infiniteOptionsName} = (${paramsExpression}) => {`;
     yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}();`;
     yield `  return ${infiniteQueryOptions()}({`;
-    yield `    queryKey: ${this.buildSimpleQueryKey(method, {
+    yield `    queryKey: ${this.buildQueryKey(method, {
       infinite: true,
     })},`;
     yield `    queryFn: async ({ pageParam }: ${PageParam()}) => {`;
@@ -687,16 +672,15 @@ export class HookFile extends ModuleBuilder {
     yield `      return res;`;
     yield `    },`;
     yield* this.buildInfiniteSelectFn(method);
-    yield `    initialPageParam: ${getInitialPageParam()}(params${
-      q ? '?? {}' : ''
-    }),`;
+    yield `    initialPageParam: ${getInitialPageParam()}(params${q ? '?? {}' : ''
+      }),`;
     yield `    ${getNextPageParam()},`;
     yield `    ${getPreviousPageParam()},`;
     yield `  });`;
     yield `};`;
   }
 
-  private buildSimpleQueryKey(
+  private buildQueryKey(
     method: Method,
     options?: { infinite?: boolean },
   ): string {
@@ -719,28 +703,3 @@ export class HookFile extends ModuleBuilder {
   }
 }
 
-function brakets(member: { isArray: boolean }): '[]' | '' {
-  return member.isArray ? '[]' : '';
-}
-
-function isPathParam(part: string): boolean {
-  return part.startsWith('{') && part.endsWith('}');
-}
-
-function isCacheParam(
-  param: HttpParameter,
-  includeRelayParams: boolean,
-): boolean {
-  if (param.location.value !== 'query') return false;
-
-  if (!includeRelayParams) {
-    return (
-      camel(param.name.value.toLowerCase()) !== 'first' &&
-      camel(param.name.value.toLowerCase()) !== 'after' &&
-      camel(param.name.value.toLowerCase()) !== 'last' &&
-      camel(param.name.value.toLowerCase()) !== 'before'
-    );
-  }
-
-  return true;
-}
