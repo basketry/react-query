@@ -75,10 +75,9 @@ export class ContextFile extends ModuleBuilder {
       // Add service getter function (v0.3.0)
       yield ``;
       yield `export const ${getterName} = (config?: ${contextPropsName}) => {`;
-      yield `  const serviceConfig = config ?? getCurrentContext();`;
-      yield `  if (!serviceConfig) {`;
-      yield `    throw new Error('${getterName}: Configuration required. Either pass config parameter or wrap component in ${providerName}.');`;
-      yield `  }`;
+      yield `  const serviceConfig = config ?? getCurrentContext() ?? {`;
+      yield `    fetch: typeof window !== 'undefined' ? window.fetch.bind(window) : globalThis.fetch`;
+      yield `  };`;
       yield `  const ${localName}: ${this.types.type(
         interfaceName,
       )} = new ${this.client.fn(

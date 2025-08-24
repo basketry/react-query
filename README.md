@@ -5,6 +5,11 @@
 
 [Basketry generator](https://basketry.io) for generating React Query queryOptions and hooks. This generator can be coupled with any Basketry parser.
 
+## Requirements
+
+- Node.js 18.0.0 or higher (for native fetch support)
+- React Query v5
+
 ## Quick Start
 
 ### Installation

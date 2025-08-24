@@ -37,6 +37,9 @@
   },
   "homepage": "https://basketry.io/docs/components/@basketry/react-query",
   "funding": "https://github.com/sponsors/basketry",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@basketry/dotfiles": "^1.1.0",
     "@types/jest": "^27.4.0",
