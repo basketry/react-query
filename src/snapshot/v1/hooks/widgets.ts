@@ -36,7 +36,7 @@ import { guard, type QueryError } from './runtime';
 
 export const getWidgetsQueryOptions = () => {
   const widgetService = getWidgetService();
-  return queryOptions({
+  return queryOptions<Widget, QueryError<Error[]>>({
     queryKey: ['widget', 'getWidgets', {}],
     queryFn: async () => {
       const res = await guard(widgetService.getWidgets());
@@ -88,7 +88,7 @@ export const createWidgetMutationOptions = () => {
 
 export const getWidgetFooQueryOptions = (params?: GetWidgetFooParams) => {
   const widgetService = getWidgetService();
-  return queryOptions({
+  return queryOptions<Widget, QueryError<Error[]>>({
     queryKey: ['widget', 'getWidgetFoo', params || {}],
     queryFn: async () => {
       const res = await guard(widgetService.getWidgetFoo(params));

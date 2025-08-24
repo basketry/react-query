@@ -33,7 +33,7 @@ import { guard, type QueryError } from './runtime';
 
 export const allAuthSchemesQueryOptions = () => {
   const authPermutationService = getAuthPermutationService();
-  return queryOptions({
+  return queryOptions<void, QueryError<Error[]>, void>({
     queryKey: ['authPermutation', 'allAuthSchemes', {}],
     queryFn: async () => {
       const res = await guard(authPermutationService.allAuthSchemes());

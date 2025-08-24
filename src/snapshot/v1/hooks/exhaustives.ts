@@ -32,7 +32,7 @@ export const exhaustiveFormatsQueryOptions = (
   params?: ExhaustiveFormatsParams,
 ) => {
   const exhaustiveService = getExhaustiveService();
-  return queryOptions({
+  return queryOptions<void, QueryError<Error[]>, void>({
     queryKey: ['exhaustive', 'exhaustiveFormats', params || {}],
     queryFn: async () => {
       const res = await guard(exhaustiveService.exhaustiveFormats(params));
@@ -53,7 +53,7 @@ export const exhaustiveParamsQueryOptions = (
   params: ExhaustiveParamsParams,
 ) => {
   const exhaustiveService = getExhaustiveService();
-  return queryOptions({
+  return queryOptions<void, QueryError<Error[]>, void>({
     queryKey: ['exhaustive', 'exhaustiveParams', params || {}],
     queryFn: async () => {
       const res = await guard(exhaustiveService.exhaustiveParams(params));

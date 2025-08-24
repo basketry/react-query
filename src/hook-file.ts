@@ -473,7 +473,7 @@ export class HookFile extends ModuleBuilder {
     method: Method,
     httpRoute: HttpRoute,
   ): Iterable<string> {
-    const queryOptions = () => this.tanstack.fn('queryOptions');
+    const queryOptions = this.buildQueryOptions(method);
     const QueryError = () => this.runtime.type('QueryError');
     const assert = () => this.runtime.fn('assert');
     const type = (t: string) => this.types.type(t);

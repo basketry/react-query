@@ -41,7 +41,7 @@ import { guard, type QueryError } from './runtime';
  */
 export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
   const gizmoService = getGizmoService();
-  return queryOptions({
+  return queryOptions<GetGizmosResponse, QueryError<Error[]>, void>({
     queryKey: ['gizmo', 'getGizmos', params || {}],
     queryFn: async () => {
       const res = await guard(gizmoService.getGizmos(params));
