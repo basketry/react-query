@@ -42,8 +42,8 @@ export class ContextFile extends ModuleBuilder {
     yield `let currentContext: ${contextPropsName} | undefined;`;
     yield ``;
 
-    yield `export const ${providerName}: ${FC()}<${PropsWithChildren()}<${contextPropsName}>> = ({ children, fetch, options }) => {`;
-    yield `  const value = ${useMemo()}(() => ({ fetch, options }), [fetch, options.mapUnhandledException, options.mapValidationError, options.root]);`;
+    yield `export const ${providerName}: ${FC()}<${PropsWithChildren()}<${contextPropsName}>> = ({ children, ...props }) => {`;
+    yield `  const value = ${useMemo()}(() => ({ ...props }), [props.fetch, props.mapUnhandledException, props.mapValidationError, props.root]);`;
     yield `  currentContext = value;`;
     yield `  return <${contextName}.Provider value={value}>{children}</${contextName}.Provider>;`;
     yield `};`;
@@ -66,7 +66,7 @@ export class ContextFile extends ModuleBuilder {
         interfaceName,
       )} = new ${this.client.fn(
         className,
-      )}(currentContext.fetch, currentContext.options);`;
+      )}(currentContext.fetch ?? window.fetch.bind(window), currentContext);`;
       yield `  return ${localName};`;
       yield `};`;
 

@@ -45,14 +45,14 @@ let currentContext: BasketryExampleContextProps | undefined;
 
 export const BasketryExampleProvider: FC<
   PropsWithChildren<BasketryExampleContextProps>
-> = ({ children, fetch, options }) => {
+> = ({ children, ...props }) => {
   const value = useMemo(
-    () => ({ fetch, options }),
+    () => ({ ...props }),
     [
-      fetch,
-      options.mapUnhandledException,
-      options.mapValidationError,
-      options.root,
+      props.fetch,
+      props.mapUnhandledException,
+      props.mapValidationError,
+      props.root,
     ],
   );
   currentContext = value;
@@ -71,8 +71,8 @@ export const getAuthPermutationService = () => {
   }
   const authPermutationService: AuthPermutationService =
     new HttpAuthPermutationService(
-      currentContext.fetch,
-      currentContext.options,
+      currentContext.fetch ?? window.fetch.bind(window),
+      currentContext,
     );
   return authPermutationService;
 };
@@ -99,8 +99,8 @@ export const getExhaustiveService = () => {
     );
   }
   const exhaustiveService: ExhaustiveService = new HttpExhaustiveService(
-    currentContext.fetch,
-    currentContext.options,
+    currentContext.fetch ?? window.fetch.bind(window),
+    currentContext,
   );
   return exhaustiveService;
 };
@@ -126,8 +126,8 @@ export const getGizmoService = () => {
     );
   }
   const gizmoService: GizmoService = new HttpGizmoService(
-    currentContext.fetch,
-    currentContext.options,
+    currentContext.fetch ?? window.fetch.bind(window),
+    currentContext,
   );
   return gizmoService;
 };
@@ -153,8 +153,8 @@ export const getWidgetService = () => {
     );
   }
   const widgetService: WidgetService = new HttpWidgetService(
-    currentContext.fetch,
-    currentContext.options,
+    currentContext.fetch ?? window.fetch.bind(window),
+    currentContext,
   );
   return widgetService;
 };
