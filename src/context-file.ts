@@ -1,14 +1,16 @@
-import { camel, pascal } from 'case';
+import { pascal } from 'case';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
-import { NameFactory } from './name-factory';
+import {
+  buildContextName,
+  buildProviderName,
+  buildServiceHookName,
+  buildServiceGetterName,
+  buildServiceName,
+} from './name-helpers';
 
 export class ContextFile extends ModuleBuilder {
-  private readonly nameFactory = new NameFactory(this.service, this.options);
-  private readonly react = new ImportBuilder(
-    'react',
-    this.options?.reactQuery?.reactImport ? 'React' : undefined,
-  );
+  private readonly react = new ImportBuilder('react');
   private readonly client = new ImportBuilder(
     this.options?.reactQuery?.clientModule ?? '../http-client',
   );
@@ -28,25 +30,47 @@ export class ContextFile extends ModuleBuilder {
     const FetchLike = () => this.client.type('FetchLike');
     const OptionsType = () => this.client.type(optionsName);
 
-    const contextName = this.nameFactory.buildContextName();
+    const contextName = buildContextName(this.service);
     const contextPropsName = pascal(`${contextName}_props`);
-    const providerName = this.nameFactory.buildProviderName();
+    const providerName = buildProviderName(this.service);
 
     yield `export interface ${contextPropsName} extends ${OptionsType()} { fetch?: ${FetchLike()}; }`;
     yield `const ${contextName} = ${createContext()}<${contextPropsName} | undefined>( undefined );`;
     yield ``;
+
+    // Store context for non-hook access
+    yield `let currentContext: ${contextPropsName} | undefined;`;
+    yield ``;
+
     yield `export const ${providerName}: ${FC()}<${PropsWithChildren()}<${contextPropsName}>> = ({ children, ...props }) => {`;
     yield `  const value = ${useMemo()}(() => ({ ...props }), [props.fetch, props.mapUnhandledException, props.mapValidationError, props.root]);`;
+    yield `  currentContext = value;`;
     yield `  return <${contextName}.Provider value={value}>{children}</${contextName}.Provider>;`;
     yield `};`;
-    for (const int of [...this.service.interfaces].sort((a, b) =>
+
+    const sortedInterfaces = [...this.service.interfaces].sort((a, b) =>
       a.name.value.localeCompare(b.name.value),
-    )) {
-      const hookName = this.nameFactory.buildServiceHookName(int);
-      const localName = this.nameFactory.buildServiceName(int);
-      const interfaceName = pascal(localName);
+    );
+    for (const int of sortedInterfaces) {
+      const hookName = buildServiceHookName(int);
+      const getterName = buildServiceGetterName(int);
+      const localName = buildServiceName(int);
+      const interfaceName = pascal(`${int.name.value}_service`);
       const className = pascal(`http_${int.name.value}_service`);
 
+      // Add service getter function (v0.3.0)
+      yield ``;
+      yield `export const ${getterName} = () => {`;
+      yield `  if (!currentContext) { throw new Error('${getterName} called outside of ${providerName}'); }`;
+      yield `  const ${localName}: ${this.types.type(
+        interfaceName,
+      )} = new ${this.client.fn(
+        className,
+      )}(currentContext.fetch ?? window.fetch.bind(window), currentContext);`;
+      yield `  return ${localName};`;
+      yield `};`;
+
+      // Keep legacy hook for backward compatibility (v0.2.0)
       yield ``;
       yield `export const ${hookName} = () => {`;
       yield `  const context = ${useContext()}(${contextName});`;

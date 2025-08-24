@@ -130,3 +130,6 @@ dist
 .pnp.*
 
 lib/
+
+# AI Assistant Configuration
+CLAUDE.md
