@@ -5,7 +5,6 @@ import {
   getTypeByName,
   getUnionByName,
   HttpMethod,
-  HttpParameter,
   HttpRoute,
   Interface,
   isRequired,
@@ -96,8 +95,9 @@ export class HookFile extends ModuleBuilder {
     const serviceHookName = buildServiceHookName(this.int);
 
     for (const method of [...this.int.methods].sort((a, b) =>
-      buildHookName(a, this.service)
-        .localeCompare(buildHookName(b, this.service)),
+      buildHookName(a, this.service).localeCompare(
+        buildHookName(b, this.service),
+      ),
     )) {
       const name = buildHookName(method, this.service);
       const suspenseName = buildHookName(method, this.service, {
@@ -160,7 +160,9 @@ export class HookFile extends ModuleBuilder {
         const optionsExpression = `options?: Omit<${mutationOptions()}, 'mutationFn'>`;
 
         yield* buildDescription(method.description, true); // Mark as deprecated
-        yield `/** @deprecated Use ${buildMutationOptionsName(method)} with useMutation instead */`;
+        yield `/** @deprecated Use ${buildMutationOptionsName(
+          method,
+        )} with useMutation instead */`;
         yield `export function ${name}(${optionsExpression}) {`;
         yield `  const queryClient = ${useQueryClient()}();`;
         yield `  const ${serviceName} = ${this.context.fn(serviceHookName)}()`;
@@ -220,15 +222,18 @@ export class HookFile extends ModuleBuilder {
         yield `      return res;`;
         yield `    },`;
         yield* this.buildInfiniteSelectFn(method);
-        yield `    initialPageParam: ${getInitialPageParam()}(params${q ? '?? {}' : ''
-          }),`;
+        yield `    initialPageParam: ${getInitialPageParam()}(params${
+          q ? '?? {}' : ''
+        }),`;
         yield `    ${getNextPageParam()},`;
         yield `    ${getPreviousPageParam()},`;
         yield `  };`;
         yield `}`;
 
         yield* buildDescription(method.description, true); // Mark as deprecated
-        yield `/** @deprecated Use ${buildInfiniteQueryOptionsName(method)} with useInfiniteQuery instead */`;
+        yield `/** @deprecated Use ${buildInfiniteQueryOptionsName(
+          method,
+        )} with useInfiniteQuery instead */`;
         yield `export const ${buildHookName(method, this.service, {
           suspense: false,
           infinite: true,
@@ -238,7 +243,9 @@ export class HookFile extends ModuleBuilder {
         yield `}`;
 
         yield* buildDescription(method.description, true); // Mark as deprecated
-        yield `/** @deprecated Use ${buildInfiniteQueryOptionsName(method)} with useSuspenseInfiniteQuery instead */`;
+        yield `/** @deprecated Use ${buildInfiniteQueryOptionsName(
+          method,
+        )} with useSuspenseInfiniteQuery instead */`;
         yield `export const ${buildHookName(method, this.service, {
           suspense: true,
           infinite: true,
@@ -339,8 +346,9 @@ export class HookFile extends ModuleBuilder {
 
     yield `    select: (data: ${InfiniteData()}<${type(
       returnTypeName,
-    )}, string | undefined>) => data.pages.flatMap((page) => page.data${optional ? ' ?? []' : ''
-      }),`;
+    )}, string | undefined>) => data.pages.flatMap((page) => page.data${
+      optional ? ' ?? []' : ''
+    }),`;
   }
 
   private buildQueryOptions(method: Method): () => string {
@@ -459,21 +467,21 @@ export class HookFile extends ModuleBuilder {
     const dataProp =
       returnType.kind === 'Type'
         ? returnType.properties.find(
-          (p) =>
-            p.name.value.toLocaleLowerCase() === 'data' ||
-            p.name.value.toLocaleLowerCase() === 'value' ||
-            p.name.value.toLocaleLowerCase() === 'values',
-        )
+            (p) =>
+              p.name.value.toLocaleLowerCase() === 'data' ||
+              p.name.value.toLocaleLowerCase() === 'value' ||
+              p.name.value.toLocaleLowerCase() === 'values',
+          )
         : undefined;
     if (!dataProp) return { envelope: undefined, returnType };
 
     const errorProp =
       returnType.kind === 'Type'
         ? returnType.properties.find(
-          (p) =>
-            p.name.value.toLocaleLowerCase() === 'error' ||
-            p.name.value.toLocaleLowerCase() === 'errors',
-        )
+            (p) =>
+              p.name.value.toLocaleLowerCase() === 'error' ||
+              p.name.value.toLocaleLowerCase() === 'errors',
+          )
         : undefined;
     if (!errorProp) return { envelope: undefined, returnType };
 
@@ -541,10 +549,7 @@ export class HookFile extends ModuleBuilder {
     const { skipSelect, dataProp } = this.xxxx(method);
 
     yield '';
-    yield* buildDescription(
-      method.description,
-      method.deprecated?.value,
-    );
+    yield* buildDescription(method.description, method.deprecated?.value);
     yield `export const ${exportedName} = (${paramsExpression}) => {`;
     yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}()`;
     yield `  return ${queryOptions()}({`;
@@ -593,10 +598,7 @@ export class HookFile extends ModuleBuilder {
     const dataProp = envelope?.dataProp;
 
     yield '';
-    yield* buildDescription(
-      method.description,
-      method.deprecated?.value,
-    );
+    yield* buildDescription(method.description, method.deprecated?.value);
     yield `export const ${mutationOptionsName} = () => {`;
     yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}()`;
     yield `  return ${mutationOptions()}({`;
@@ -651,10 +653,7 @@ export class HookFile extends ModuleBuilder {
       : '';
 
     yield '';
-    yield* buildDescription(
-      method.description,
-      method.deprecated?.value,
-    );
+    yield* buildDescription(method.description, method.deprecated?.value);
     yield `export const ${infiniteOptionsName} = (${paramsExpression}) => {`;
     yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}();`;
     yield `  return ${infiniteQueryOptions()}({`;
@@ -672,8 +671,9 @@ export class HookFile extends ModuleBuilder {
     yield `      return res;`;
     yield `    },`;
     yield* this.buildInfiniteSelectFn(method);
-    yield `    initialPageParam: ${getInitialPageParam()}(params${q ? '?? {}' : ''
-      }),`;
+    yield `    initialPageParam: ${getInitialPageParam()}(params${
+      q ? '?? {}' : ''
+    }),`;
     yield `    ${getNextPageParam()},`;
     yield `    ${getPreviousPageParam()},`;
     yield `  });`;
@@ -702,4 +702,3 @@ export class HookFile extends ModuleBuilder {
     return `[${queryKey.join(', ')}]`;
   }
 }
-

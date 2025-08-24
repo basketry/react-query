@@ -48,7 +48,9 @@ export class ContextFile extends ModuleBuilder {
     yield `  return <${contextName}.Provider value={value}>{children}</${contextName}.Provider>;`;
     yield `};`;
 
-    const sortedInterfaces = [...this.service.interfaces].sort((a, b) => a.name.value.localeCompare(b.name.value))
+    const sortedInterfaces = [...this.service.interfaces].sort((a, b) =>
+      a.name.value.localeCompare(b.name.value),
+    );
     for (const int of sortedInterfaces) {
       const hookName = buildServiceHookName(int);
       const getterName = buildServiceGetterName(int);
@@ -75,7 +77,9 @@ export class ContextFile extends ModuleBuilder {
       yield `  if (!context) { throw new Error('${hookName} must be used within a ${providerName}'); }`;
       yield `  const ${localName}: ${this.types.type(
         interfaceName,
-      )} = new ${this.client.fn(className)}(context.fetch ?? window.fetch.bind(window), context);`;
+      )} = new ${this.client.fn(
+        className,
+      )}(context.fetch ?? window.fetch.bind(window), context);`;
       yield `  return ${localName};`;
       yield `}`;
     }

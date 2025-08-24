@@ -18,7 +18,7 @@ class HookGenerator {
   constructor(
     private readonly service: Service,
     private readonly options: NamespacedReactQueryOptions,
-  ) { }
+  ) {}
 
   async generate(): Promise<File[]> {
     const files: File[] = [];
@@ -55,8 +55,8 @@ class HookGenerator {
       path: buildFilePath(['hooks', 'README.md'], this.service, this.options),
       contents: await formatMarkdown(
         from(new ReadmeFile(this.service, this.options).build()),
-        this.options
-      )
+        this.options,
+      ),
     });
 
     for (const int of this.service.interfaces) {

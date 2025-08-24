@@ -9,7 +9,12 @@ import { plural } from 'pluralize';
 import { format, Options } from 'prettier';
 
 import { NamespacedReactQueryOptions } from './types';
-import { buildHookName, buildProviderName, buildServiceName, buildServiceHookName } from './name-helpers';
+import {
+  buildHookName,
+  buildProviderName,
+  buildServiceName,
+  buildServiceHookName,
+} from './name-helpers';
 import { isRelayPaginaged } from './utils';
 
 type MethodInfo = {
@@ -26,7 +31,6 @@ export class ReadmeFile {
     private readonly service: Service,
     private readonly options: NamespacedReactQueryOptions,
   ) {}
-
 
   private import(...path: string[]) {
     return `./${buildFilePath(path, this.service, this.options).join('/')}`;

@@ -12,7 +12,7 @@ export async function* generateFiles(): AsyncIterable<File> {
   const options: NamespacedReactQueryOptions = {};
 
   const parser = require('@basketry/ir');
-  
+
   const { engines } = await NodeEngine.load({
     sourcePath: 'source/path.ext',
     sourceContent: JSON.stringify(service),
