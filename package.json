@@ -1,6 +1,6 @@
 {
   "name": "@basketry/react-query",
-  "version": "0.2.1",
+  "version": "0.3.0-alpha.0",
   "description": "Basketry generator for generating React Query hooks",
   "main": "./lib/index.js",
   "bin": {
