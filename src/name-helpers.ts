@@ -45,15 +45,17 @@ export function buildHookName(
   const name = method.name.value;
   const httpMethod = getHttpMethodByName(service, name);
 
-  if (
-    httpMethod?.verb.value === 'get' &&
-    name.toLocaleLowerCase().startsWith('get')
-  ) {
+  if (httpMethod?.verb.value === 'get') {
     // Query Hook
+    // Remove 'get' prefix if present for cleaner hook names
+    const hookBaseName = name.toLocaleLowerCase().startsWith('get')
+      ? name.slice(3)
+      : name;
+
     return camel(
       `use_${options?.suspense ? 'suspense_' : ''}${
         options?.infinite ? 'infinite_' : ''
-      }${name.slice(3)}`,
+      }${hookBaseName}`,
     );
   }
 

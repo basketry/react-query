@@ -85,7 +85,7 @@ export function useExhaustiveFormats(
 }
 
 /** @deprecated Use exhaustiveFormatsQueryOptions with useSuspenseQuery instead */
-export function useExhaustiveFormats(
+export function useSuspenseExhaustiveFormats(
   params?: ExhaustiveFormatsParams,
   options?: Omit<
     UndefinedInitialDataOptions<void, QueryError<Error[]>, void>,
@@ -109,7 +109,7 @@ export function useExhaustiveParams(
 }
 
 /** @deprecated Use exhaustiveParamsQueryOptions with useSuspenseQuery instead */
-export function useExhaustiveParams(
+export function useSuspenseExhaustiveParams(
   params: ExhaustiveParamsParams,
   options?: Omit<
     UndefinedInitialDataOptions<void, QueryError<Error[]>, void>,

@@ -81,7 +81,7 @@ export function useAllAuthSchemes(
 }
 
 /** @deprecated Use allAuthSchemesQueryOptions with useSuspenseQuery instead */
-export function useAllAuthSchemes(
+export function useSuspenseAllAuthSchemes(
   options?: Omit<
     UndefinedInitialDataOptions<void, QueryError<Error[]>, void>,
     'queryKey' | 'queryFn' | 'select'
