@@ -128,7 +128,7 @@ export class HookFile extends ModuleBuilder {
 
         const optionsExpression = `options?: Omit<${UndefinedInitialDataOptions()}<${genericTypes}>,'queryKey' | 'queryFn' | 'select'>`;
 
-        yield* buildDescription(method.description, true); // Mark as deprecated
+        yield* buildDescription(method.description, true);
         yield `/** @deprecated Use ${queryOptionsName} with useQuery instead */`;
         yield `export function ${name}(${[
           paramsExpression,
@@ -138,7 +138,7 @@ export class HookFile extends ModuleBuilder {
         yield `  return ${useQuery()}({...defaultOptions, ...options});`;
         yield `}`;
         yield '';
-        yield* buildDescription(method.description, true); // Mark as deprecated
+        yield* buildDescription(method.description, true);
         yield `/** @deprecated Use ${queryOptionsName} with useSuspenseQuery instead */`;
         yield `export function ${suspenseName}(${[
           paramsExpression,
@@ -159,7 +159,7 @@ export class HookFile extends ModuleBuilder {
 
         const optionsExpression = `options?: Omit<${mutationOptions()}, 'mutationFn'>`;
 
-        yield* buildDescription(method.description, true); // Mark as deprecated
+        yield* buildDescription(method.description, true);
         yield `/** @deprecated Use ${buildMutationOptionsName(
           method,
         )} with useMutation instead */`;
@@ -178,7 +178,7 @@ export class HookFile extends ModuleBuilder {
         yield `        throw handled`;
         yield `      }`;
 
-        // Invalidate all queries for this interface using the simpler pattern
+        // Invalidate all queries for this interface
         const interfaceName = camel(this.int.name.value);
         yield `      queryClient.invalidateQueries({ queryKey: ['${interfaceName}'] });`;
         if (dataProp && !isRequired(dataProp.value)) {
@@ -222,15 +222,14 @@ export class HookFile extends ModuleBuilder {
         yield `      return res;`;
         yield `    },`;
         yield* this.buildInfiniteSelectFn(method);
-        yield `    initialPageParam: ${getInitialPageParam()}(params${
-          q ? '?? {}' : ''
-        }),`;
+        yield `    initialPageParam: ${getInitialPageParam()}(params${q ? '?? {}' : ''
+          }),`;
         yield `    ${getNextPageParam()},`;
         yield `    ${getPreviousPageParam()},`;
         yield `  };`;
         yield `}`;
 
-        yield* buildDescription(method.description, true); // Mark as deprecated
+        yield* buildDescription(method.description, true);
         yield `/** @deprecated Use ${buildInfiniteQueryOptionsName(
           method,
         )} with useInfiniteQuery instead */`;
@@ -242,7 +241,7 @@ export class HookFile extends ModuleBuilder {
         yield `  return ${useInfiniteQuery()}(options);`;
         yield `}`;
 
-        yield* buildDescription(method.description, true); // Mark as deprecated
+        yield* buildDescription(method.description, true);
         yield `/** @deprecated Use ${buildInfiniteQueryOptionsName(
           method,
         )} with useSuspenseInfiniteQuery instead */`;
@@ -346,9 +345,8 @@ export class HookFile extends ModuleBuilder {
 
     yield `    select: (data: ${InfiniteData()}<${type(
       returnTypeName,
-    )}, string | undefined>) => data.pages.flatMap((page) => page.data${
-      optional ? ' ?? []' : ''
-    }),`;
+    )}, string | undefined>) => data.pages.flatMap((page) => page.data${optional ? ' ?? []' : ''
+      }),`;
   }
 
   private buildQueryOptions(method: Method): () => string {
@@ -367,13 +365,10 @@ export class HookFile extends ModuleBuilder {
     const { returnTypeName, dataTypeName, array, skipSelect } =
       this.xxxx(method);
 
-    // This is the type returned by the queryFn
     genericTypes.push(type(returnTypeName));
 
-    // This is the type of the error returned by the hook if the query fails
     genericTypes.push(`${QueryError()}<${type('Error')}[]>`);
 
-    // This is the type returned by the select function (if it exists)
     if (!skipSelect) {
       genericTypes.push(`${type(dataTypeName)}${array}`);
     }
@@ -467,21 +462,21 @@ export class HookFile extends ModuleBuilder {
     const dataProp =
       returnType.kind === 'Type'
         ? returnType.properties.find(
-            (p) =>
-              p.name.value.toLocaleLowerCase() === 'data' ||
-              p.name.value.toLocaleLowerCase() === 'value' ||
-              p.name.value.toLocaleLowerCase() === 'values',
-          )
+          (p) =>
+            p.name.value.toLocaleLowerCase() === 'data' ||
+            p.name.value.toLocaleLowerCase() === 'value' ||
+            p.name.value.toLocaleLowerCase() === 'values',
+        )
         : undefined;
     if (!dataProp) return { envelope: undefined, returnType };
 
     const errorProp =
       returnType.kind === 'Type'
         ? returnType.properties.find(
-            (p) =>
-              p.name.value.toLocaleLowerCase() === 'error' ||
-              p.name.value.toLocaleLowerCase() === 'errors',
-          )
+          (p) =>
+            p.name.value.toLocaleLowerCase() === 'error' ||
+            p.name.value.toLocaleLowerCase() === 'errors',
+        )
         : undefined;
     if (!errorProp) return { envelope: undefined, returnType };
 
@@ -671,9 +666,8 @@ export class HookFile extends ModuleBuilder {
     yield `      return res;`;
     yield `    },`;
     yield* this.buildInfiniteSelectFn(method);
-    yield `    initialPageParam: ${getInitialPageParam()}(params${
-      q ? '?? {}' : ''
-    }),`;
+    yield `    initialPageParam: ${getInitialPageParam()}(params${q ? '?? {}' : ''
+      }),`;
     yield `    ${getNextPageParam()},`;
     yield `    ${getPreviousPageParam()},`;
     yield `  });`;

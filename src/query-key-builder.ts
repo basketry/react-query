@@ -23,15 +23,12 @@ export class QueryKeyBuilder extends ModuleBuilder {
   protected readonly importBuilders = [this.types];
 
   *body(): Iterable<string> {
-    // Generate QueryKeyMap interface
     yield* this.generateQueryKeyMap();
     yield '';
 
-    // Generate type extraction helpers
     yield* this.generateTypeHelpers();
     yield '';
 
-    // Generate matchQueryKey function
     yield* this.generateMatchQueryKeyFunction();
   }
 
@@ -59,21 +56,18 @@ export class QueryKeyBuilder extends ModuleBuilder {
   }
 
   private *generateTypeHelpers(): Iterable<string> {
-    // ServiceKeys type
     yield '/**';
     yield ' * Extract all service names from QueryKeyMap';
     yield ' */';
     yield 'export type ServiceKeys = keyof QueryKeyMap;';
     yield '';
 
-    // OperationKeys type
     yield '/**';
     yield ' * Extract operation names for a given service';
     yield ' */';
     yield 'export type OperationKeys<S extends ServiceKeys> = keyof QueryKeyMap[S];';
     yield '';
 
-    // OperationParams type
     yield '/**';
     yield ' * Extract parameter type for a given service and operation';
     yield ' */';
