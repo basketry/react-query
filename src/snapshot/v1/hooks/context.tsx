@@ -37,11 +37,23 @@ import type {
 export interface BasketryExampleContextProps extends BasketryExampleOptions {
   fetch?: FetchLike;
 }
+export type BasketryExampleServiceConfig = BasketryExampleContextProps;
 const BasketryExampleContext = createContext<
   BasketryExampleContextProps | undefined
 >(undefined);
 
 let currentContext: BasketryExampleContextProps | undefined;
+
+// SSR-safe getter for current context
+export const getCurrentContext = ():
+  | BasketryExampleContextProps
+  | undefined => {
+  if (typeof window === 'undefined' && !currentContext) {
+    // SSR/RSC: No context available unless explicitly set
+    return undefined;
+  }
+  return currentContext;
+};
 
 export const BasketryExampleProvider: FC<
   PropsWithChildren<BasketryExampleContextProps>
@@ -63,16 +75,22 @@ export const BasketryExampleProvider: FC<
   );
 };
 
-export const getAuthPermutationService = () => {
-  if (!currentContext) {
+export const getAuthPermutationService = (
+  config?: BasketryExampleContextProps,
+) => {
+  const serviceConfig = config ?? getCurrentContext();
+  if (!serviceConfig) {
     throw new Error(
-      'getAuthPermutationService called outside of BasketryExampleProvider',
+      'getAuthPermutationService: Configuration required. Either pass config parameter or wrap component in BasketryExampleProvider.',
     );
   }
   const authPermutationService: AuthPermutationService =
     new HttpAuthPermutationService(
-      currentContext.fetch ?? window.fetch.bind(window),
-      currentContext,
+      serviceConfig.fetch ??
+        (typeof window !== 'undefined'
+          ? window.fetch.bind(window)
+          : globalThis.fetch),
+      serviceConfig,
     );
   return authPermutationService;
 };
@@ -92,15 +110,19 @@ export const useAuthPermutationService = () => {
   return authPermutationService;
 };
 
-export const getExhaustiveService = () => {
-  if (!currentContext) {
+export const getExhaustiveService = (config?: BasketryExampleContextProps) => {
+  const serviceConfig = config ?? getCurrentContext();
+  if (!serviceConfig) {
     throw new Error(
-      'getExhaustiveService called outside of BasketryExampleProvider',
+      'getExhaustiveService: Configuration required. Either pass config parameter or wrap component in BasketryExampleProvider.',
     );
   }
   const exhaustiveService: ExhaustiveService = new HttpExhaustiveService(
-    currentContext.fetch ?? window.fetch.bind(window),
-    currentContext,
+    serviceConfig.fetch ??
+      (typeof window !== 'undefined'
+        ? window.fetch.bind(window)
+        : globalThis.fetch),
+    serviceConfig,
   );
   return exhaustiveService;
 };
@@ -119,15 +141,19 @@ export const useExhaustiveService = () => {
   return exhaustiveService;
 };
 
-export const getGizmoService = () => {
-  if (!currentContext) {
+export const getGizmoService = (config?: BasketryExampleContextProps) => {
+  const serviceConfig = config ?? getCurrentContext();
+  if (!serviceConfig) {
     throw new Error(
-      'getGizmoService called outside of BasketryExampleProvider',
+      'getGizmoService: Configuration required. Either pass config parameter or wrap component in BasketryExampleProvider.',
     );
   }
   const gizmoService: GizmoService = new HttpGizmoService(
-    currentContext.fetch ?? window.fetch.bind(window),
-    currentContext,
+    serviceConfig.fetch ??
+      (typeof window !== 'undefined'
+        ? window.fetch.bind(window)
+        : globalThis.fetch),
+    serviceConfig,
   );
   return gizmoService;
 };
@@ -146,15 +172,19 @@ export const useGizmoService = () => {
   return gizmoService;
 };
 
-export const getWidgetService = () => {
-  if (!currentContext) {
+export const getWidgetService = (config?: BasketryExampleContextProps) => {
+  const serviceConfig = config ?? getCurrentContext();
+  if (!serviceConfig) {
     throw new Error(
-      'getWidgetService called outside of BasketryExampleProvider',
+      'getWidgetService: Configuration required. Either pass config parameter or wrap component in BasketryExampleProvider.',
     );
   }
   const widgetService: WidgetService = new HttpWidgetService(
-    currentContext.fetch ?? window.fetch.bind(window),
-    currentContext,
+    serviceConfig.fetch ??
+      (typeof window !== 'undefined'
+        ? window.fetch.bind(window)
+        : globalThis.fetch),
+    serviceConfig,
   );
   return widgetService;
 };

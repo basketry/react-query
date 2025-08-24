@@ -181,3 +181,108 @@ export const Example = () => {
   );
 };
 ```
+
+## Server-Side Rendering (SSR) and React Server Components (RSC)
+
+The generated query and mutation options support SSR and RSC environments by accepting an optional configuration parameter. This allows you to pass service configuration directly without requiring the React context provider.
+
+### Using in React Server Components
+
+```tsx
+// app/page.tsx (Next.js App Router)
+import { getGetGizmosQueryOptions } from './v1/hooks/gizmos';
+import type { BasketryExampleServiceConfig } from './v1/hooks/context';
+
+export default async function Page() {
+  const config: BasketryExampleServiceConfig = {
+    fetch: customFetch, // Optional custom fetch implementation
+    root: process.env.API_URL,
+    // ... other configuration options
+  };
+
+  const queryClient = new QueryClient();
+  const data = await queryClient.fetchQuery(
+    getGetGizmosQueryOptions(
+      {
+        /* params */
+      },
+      config,
+    ),
+  );
+
+  return <div>{/* Render your data */}</div>;
+}
+```
+
+### Using in SSR (Next.js Pages Router)
+
+```tsx
+// pages/example.tsx
+import { getGetGizmosQueryOptions } from './v1/hooks/gizmos';
+import type { BasketryExampleServiceConfig } from './v1/hooks/context';
+
+export async function getServerSideProps() {
+  const config: BasketryExampleServiceConfig = {
+    root: process.env.API_URL,
+    // ... other configuration options
+  };
+
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery(
+    getGetGizmosQueryOptions(
+      {
+        /* params */
+      },
+      config,
+    ),
+  );
+
+  return {
+    props: {
+      dehydratedState: dehydrate(queryClient),
+    },
+  };
+}
+```
+
+### Client Components with Config Override
+
+Even in client components, you can override the context configuration by passing a config parameter:
+
+```tsx
+import { useQuery } from '@tanstack/react-query';
+import { getGetGizmosQueryOptions } from './v1/hooks/gizmos';
+import type { BasketryExampleServiceConfig } from './v1/hooks/context';
+
+export const Example = () => {
+  // Use a different API endpoint for this specific query
+  const specialConfig: BasketryExampleServiceConfig = {
+    root: 'https://staging-api.example.com',
+  };
+
+  const { data } = useQuery(
+    getGetGizmosQueryOptions(
+      {
+        /* params */
+      },
+      specialConfig,
+    ),
+  );
+
+  return <div>{/* Render your data */}</div>;
+};
+```
+
+### Configuration Type
+
+The configuration parameter has the same type as the provider props, exported as `BasketryExampleServiceConfig`:
+
+```tsx
+import type { BasketryExampleServiceConfig } from './v1/hooks/context';
+
+const config: BasketryExampleServiceConfig = {
+  fetch: customFetch,
+  root: '/api/v1',
+  // ... other options
+};
+```

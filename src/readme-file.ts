@@ -380,6 +380,120 @@ export const Example = () => {
     </div>
   );
 };
+\`\`\`
+
+## Server-Side Rendering (SSR) and React Server Components (RSC)
+
+The generated query and mutation options support SSR and RSC environments by accepting an optional configuration parameter. This allows you to pass service configuration directly without requiring the React context provider.
+
+### Using in React Server Components
+
+\`\`\`tsx
+// app/page.tsx (Next.js App Router)
+import { get${pascal(
+      queryMethod?.method.name.value ?? 'Example',
+    )}QueryOptions } from '${queryMethod?.importPath}';
+import type { ${pascal(
+      this.service.title.value,
+    )}ServiceConfig } from '${contextImportPath}';
+
+export default async function Page() {
+  const config: ${pascal(this.service.title.value)}ServiceConfig = {
+    fetch: customFetch, // Optional custom fetch implementation
+    root: process.env.API_URL,
+    // ... other configuration options
+  };
+  
+  const queryClient = new QueryClient();
+  const data = await queryClient.fetchQuery(
+    get${pascal(queryMethod?.method.name.value ?? 'Example')}QueryOptions(${
+      queryMethod?.params ? `{ ${queryMethod.params} }, config` : 'config'
+    })
+  );
+  
+  return <div>{/* Render your data */}</div>;
+}
+\`\`\`
+
+### Using in SSR (Next.js Pages Router)
+
+\`\`\`tsx
+// pages/example.tsx
+import { get${pascal(
+      queryMethod?.method.name.value ?? 'Example',
+    )}QueryOptions } from '${queryMethod?.importPath}';
+import type { ${pascal(
+      this.service.title.value,
+    )}ServiceConfig } from '${contextImportPath}';
+
+export async function getServerSideProps() {
+  const config: ${pascal(this.service.title.value)}ServiceConfig = {
+    root: process.env.API_URL,
+    // ... other configuration options  
+  };
+  
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery(
+    get${pascal(queryMethod?.method.name.value ?? 'Example')}QueryOptions(${
+      queryMethod?.params ? `{ ${queryMethod.params} }, config` : 'config'
+    })
+  );
+  
+  return {
+    props: {
+      dehydratedState: dehydrate(queryClient),
+    },
+  };
+}
+\`\`\`
+
+### Client Components with Config Override
+
+Even in client components, you can override the context configuration by passing a config parameter:
+
+\`\`\`tsx
+import { useQuery } from '@tanstack/react-query';
+import { get${pascal(
+      queryMethod?.method.name.value ?? 'Example',
+    )}QueryOptions } from '${queryMethod?.importPath}';
+import type { ${pascal(
+      this.service.title.value,
+    )}ServiceConfig } from '${contextImportPath}';
+
+export const Example = () => {
+  // Use a different API endpoint for this specific query
+  const specialConfig: ${pascal(this.service.title.value)}ServiceConfig = {
+    root: 'https://staging-api.example.com',
+  };
+  
+  const { data } = useQuery(
+    get${pascal(queryMethod?.method.name.value ?? 'Example')}QueryOptions(${
+      queryMethod?.params
+        ? `{ ${queryMethod.params} }, specialConfig`
+        : 'specialConfig'
+    })
+  );
+  
+  return <div>{/* Render your data */}</div>;
+};
+\`\`\`
+
+### Configuration Type
+
+The configuration parameter has the same type as the provider props, exported as \`${pascal(
+      this.service.title.value,
+    )}ServiceConfig\`:
+
+\`\`\`tsx
+import type { ${pascal(
+      this.service.title.value,
+    )}ServiceConfig } from '${contextImportPath}';
+
+const config: ${pascal(this.service.title.value)}ServiceConfig = {
+  fetch: customFetch,
+  root: '/api/v1',
+  // ... other options
+};
 \`\`\``;
   }
 }

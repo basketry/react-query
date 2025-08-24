@@ -23,15 +23,19 @@ import type {
   ExhaustiveFormatsParams,
   ExhaustiveParamsParams,
 } from '../types';
-import { getExhaustiveService } from './context';
+import {
+  type BasketryExampleServiceConfig,
+  getExhaustiveService,
+} from './context';
 import { guard, type QueryError } from './runtime';
 
 // Query and mutation options exports for React Query v5
 
 export const exhaustiveFormatsQueryOptions = (
   params?: ExhaustiveFormatsParams,
+  config?: BasketryExampleServiceConfig,
 ) => {
-  const exhaustiveService = getExhaustiveService();
+  const exhaustiveService = getExhaustiveService(config);
   return queryOptions<void, QueryError<Error[]>, void>({
     queryKey: ['exhaustive', 'exhaustiveFormats', params || {}],
     queryFn: async () => {
@@ -51,8 +55,9 @@ export const exhaustiveFormatsQueryOptions = (
 
 export const exhaustiveParamsQueryOptions = (
   params: ExhaustiveParamsParams,
+  config?: BasketryExampleServiceConfig,
 ) => {
-  const exhaustiveService = getExhaustiveService();
+  const exhaustiveService = getExhaustiveService(config);
   return queryOptions<void, QueryError<Error[]>, void>({
     queryKey: ['exhaustive', 'exhaustiveParams', params || {}],
     queryFn: async () => {

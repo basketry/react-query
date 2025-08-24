@@ -29,7 +29,11 @@ import type {
   GetGizmosResponse,
   UpdateGizmoParams,
 } from '../types';
-import { getGizmoService, useGizmoService } from './context';
+import {
+  type BasketryExampleServiceConfig,
+  getGizmoService,
+  useGizmoService,
+} from './context';
 import { guard, type QueryError } from './runtime';
 
 // Query and mutation options exports for React Query v5
@@ -39,8 +43,11 @@ import { guard, type QueryError } from './runtime';
  *
  * @deprecated
  */
-export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
-  const gizmoService = getGizmoService();
+export const getGizmosQueryOptions = (
+  params?: GetGizmosParams,
+  config?: BasketryExampleServiceConfig,
+) => {
+  const gizmoService = getGizmoService(config);
   return queryOptions<GetGizmosResponse, QueryError<Error[]>, void>({
     queryKey: ['gizmo', 'getGizmos', params || {}],
     queryFn: async () => {
@@ -58,8 +65,10 @@ export const getGizmosQueryOptions = (params?: GetGizmosParams) => {
   });
 };
 
-export const updateGizmoMutationOptions = () => {
-  const gizmoService = getGizmoService();
+export const updateGizmoMutationOptions = (
+  config?: BasketryExampleServiceConfig,
+) => {
+  const gizmoService = getGizmoService(config);
   return mutationOptions({
     mutationFn: async (params: UpdateGizmoParams) => {
       const res = await guard(gizmoService.updateGizmo(params));
@@ -80,8 +89,10 @@ export const updateGizmoMutationOptions = () => {
  *
  * Has a description in addition to a summary
  */
-export const createGizmoMutationOptions = () => {
-  const gizmoService = getGizmoService();
+export const createGizmoMutationOptions = (
+  config?: BasketryExampleServiceConfig,
+) => {
+  const gizmoService = getGizmoService(config);
   return mutationOptions({
     mutationFn: async (params: CreateGizmoParams) => {
       const res = await guard(gizmoService.createGizmo(params));

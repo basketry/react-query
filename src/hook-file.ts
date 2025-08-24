@@ -22,7 +22,7 @@ import {
 } from '@basketry/typescript';
 import { from } from '@basketry/typescript/lib/utils';
 
-import { camel } from 'case';
+import { camel, pascal } from 'case';
 import { NamespacedReactQueryOptions } from './types';
 import { ModuleBuilder } from './module-builder';
 import { ImportBuilder } from './import-builder';
@@ -487,9 +487,12 @@ export class HookFile extends ModuleBuilder {
     const q = method.parameters.every((param) => !isRequired(param.value))
       ? '?'
       : '';
+    const configType = this.context.type(
+      `${pascal(this.service.title.value)}ServiceConfig`,
+    );
     const paramsExpression = method.parameters.length
-      ? `params${q}: ${type(paramsType)}`
-      : '';
+      ? `params${q}: ${type(paramsType)}, config?: ${configType}`
+      : `config?: ${configType}`;
     const paramsCallsite = method.parameters.length ? 'params' : '';
 
     const { skipSelect, dataProp } = this.xxxx(method);
@@ -497,7 +500,9 @@ export class HookFile extends ModuleBuilder {
     yield '';
     yield* buildDescription(method.description, method.deprecated?.value);
     yield `export const ${exportedName} = (${paramsExpression}) => {`;
-    yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}()`;
+    yield `  const ${serviceName} = ${this.context.fn(
+      serviceGetterName,
+    )}(config)`;
     yield `  return ${queryOptions()}({`;
     yield `    queryKey: ${this.buildQueryKey(method)},`;
     yield `    queryFn: async () => {`;
@@ -533,6 +538,9 @@ export class HookFile extends ModuleBuilder {
     const serviceName = buildServiceName(this.int);
     const serviceGetterName = buildServiceGetterName(this.int);
     const mutationOptionsName = buildMutationOptionsName(method);
+    const configType = this.context.type(
+      `${pascal(this.service.title.value)}ServiceConfig`,
+    );
 
     const paramsType = from(buildParamsType(method));
     const paramsExpression = method.parameters.length
@@ -545,8 +553,10 @@ export class HookFile extends ModuleBuilder {
 
     yield '';
     yield* buildDescription(method.description, method.deprecated?.value);
-    yield `export const ${mutationOptionsName} = () => {`;
-    yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}()`;
+    yield `export const ${mutationOptionsName} = (config?: ${configType}) => {`;
+    yield `  const ${serviceName} = ${this.context.fn(
+      serviceGetterName,
+    )}(config)`;
     yield `  return ${mutationOptions()}({`;
     yield `    mutationFn: async (${paramsExpression}) => {`;
     yield `      const res = await ${guard()}(${serviceName}.${camel(
@@ -584,14 +594,17 @@ export class HookFile extends ModuleBuilder {
     const serviceName = buildServiceName(this.int);
     const serviceGetterName = buildServiceGetterName(this.int);
     const infiniteOptionsName = buildInfiniteQueryOptionsName(method);
+    const configType = this.context.type(
+      `${pascal(this.service.title.value)}ServiceConfig`,
+    );
 
     const paramsType = from(buildParamsType(method));
     const q = method.parameters.every((param) => !isRequired(param.value))
       ? '?'
       : '';
     const paramsExpression = method.parameters.length
-      ? `params${q}: ${type(paramsType)}`
-      : '';
+      ? `params${q}: ${type(paramsType)}, config?: ${configType}`
+      : `config?: ${configType}`;
 
     const methodExpression = `${serviceName}.${camel(method.name.value)}`;
     const paramsCallsite = method.parameters.length
@@ -601,7 +614,9 @@ export class HookFile extends ModuleBuilder {
     yield '';
     yield* buildDescription(method.description, method.deprecated?.value);
     yield `export const ${infiniteOptionsName} = (${paramsExpression}) => {`;
-    yield `  const ${serviceName} = ${this.context.fn(serviceGetterName)}();`;
+    yield `  const ${serviceName} = ${this.context.fn(
+      serviceGetterName,
+    )}(config);`;
     yield `  return ${infiniteQueryOptions()}({`;
     yield `    queryKey: ${this.buildQueryKey(method, {
       infinite: true,

@@ -24,6 +24,7 @@ import {
 } from '@tanstack/react-query';
 import type { Error } from '../types';
 import {
+  type BasketryExampleServiceConfig,
   getAuthPermutationService,
   useAuthPermutationService,
 } from './context';
@@ -31,8 +32,10 @@ import { guard, type QueryError } from './runtime';
 
 // Query and mutation options exports for React Query v5
 
-export const allAuthSchemesQueryOptions = () => {
-  const authPermutationService = getAuthPermutationService();
+export const allAuthSchemesQueryOptions = (
+  config?: BasketryExampleServiceConfig,
+) => {
+  const authPermutationService = getAuthPermutationService(config);
   return queryOptions<void, QueryError<Error[]>, void>({
     queryKey: ['authPermutation', 'allAuthSchemes', {}],
     queryFn: async () => {
@@ -50,8 +53,10 @@ export const allAuthSchemesQueryOptions = () => {
   });
 };
 
-export const comboAuthSchemesMutationOptions = () => {
-  const authPermutationService = getAuthPermutationService();
+export const comboAuthSchemesMutationOptions = (
+  config?: BasketryExampleServiceConfig,
+) => {
+  const authPermutationService = getAuthPermutationService(config);
   return mutationOptions({
     mutationFn: async () => {
       const res = await guard(authPermutationService.comboAuthSchemes());

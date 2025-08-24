@@ -29,13 +29,19 @@ import type {
   GetWidgetFooParams,
   Widget,
 } from '../types';
-import { getWidgetService, useWidgetService } from './context';
+import {
+  type BasketryExampleServiceConfig,
+  getWidgetService,
+  useWidgetService,
+} from './context';
 import { guard, type QueryError } from './runtime';
 
 // Query and mutation options exports for React Query v5
 
-export const getWidgetsQueryOptions = () => {
-  const widgetService = getWidgetService();
+export const getWidgetsQueryOptions = (
+  config?: BasketryExampleServiceConfig,
+) => {
+  const widgetService = getWidgetService(config);
   return queryOptions<Widget, QueryError<Error[]>>({
     queryKey: ['widget', 'getWidgets', {}],
     queryFn: async () => {
@@ -52,8 +58,10 @@ export const getWidgetsQueryOptions = () => {
   });
 };
 
-export const putWidgetMutationOptions = () => {
-  const widgetService = getWidgetService();
+export const putWidgetMutationOptions = (
+  config?: BasketryExampleServiceConfig,
+) => {
+  const widgetService = getWidgetService(config);
   return mutationOptions({
     mutationFn: async () => {
       const res = await guard(widgetService.putWidget());
@@ -69,8 +77,10 @@ export const putWidgetMutationOptions = () => {
   });
 };
 
-export const createWidgetMutationOptions = () => {
-  const widgetService = getWidgetService();
+export const createWidgetMutationOptions = (
+  config?: BasketryExampleServiceConfig,
+) => {
+  const widgetService = getWidgetService(config);
   return mutationOptions({
     mutationFn: async (params: CreateWidgetParams) => {
       const res = await guard(widgetService.createWidget(params));
@@ -86,8 +96,11 @@ export const createWidgetMutationOptions = () => {
   });
 };
 
-export const getWidgetFooQueryOptions = (params?: GetWidgetFooParams) => {
-  const widgetService = getWidgetService();
+export const getWidgetFooQueryOptions = (
+  params?: GetWidgetFooParams,
+  config?: BasketryExampleServiceConfig,
+) => {
+  const widgetService = getWidgetService(config);
   return queryOptions<Widget, QueryError<Error[]>>({
     queryKey: ['widget', 'getWidgetFoo', params || {}],
     queryFn: async () => {
@@ -104,8 +117,10 @@ export const getWidgetFooQueryOptions = (params?: GetWidgetFooParams) => {
   });
 };
 
-export const deleteWidgetFooMutationOptions = () => {
-  const widgetService = getWidgetService();
+export const deleteWidgetFooMutationOptions = (
+  config?: BasketryExampleServiceConfig,
+) => {
+  const widgetService = getWidgetService(config);
   return mutationOptions({
     mutationFn: async (params: DeleteWidgetFooParams) => {
       const res = await guard(widgetService.deleteWidgetFoo(params));

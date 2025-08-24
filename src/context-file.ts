@@ -35,11 +35,25 @@ export class ContextFile extends ModuleBuilder {
     const providerName = buildProviderName(this.service);
 
     yield `export interface ${contextPropsName} extends ${OptionsType()} { fetch?: ${FetchLike()}; }`;
+    yield `export type ${pascal(
+      this.service.title.value,
+    )}ServiceConfig = ${contextPropsName};`;
     yield `const ${contextName} = ${createContext()}<${contextPropsName} | undefined>( undefined );`;
     yield ``;
 
     // Store context for non-hook access
+    // In SSR environments, this needs to be handled carefully to avoid sharing state across requests.
+    // The getCurrentContext function provides SSR-safe access.
     yield `let currentContext: ${contextPropsName} | undefined;`;
+    yield ``;
+    yield `// SSR-safe getter for current context`;
+    yield `export const getCurrentContext = (): ${contextPropsName} | undefined => {`;
+    yield `  if (typeof window === 'undefined' && !currentContext) {`;
+    yield `    // SSR/RSC: No context available unless explicitly set`;
+    yield `    return undefined;`;
+    yield `  }`;
+    yield `  return currentContext;`;
+    yield `};`;
     yield ``;
 
     yield `export const ${providerName}: ${FC()}<${PropsWithChildren()}<${contextPropsName}>> = ({ children, ...props }) => {`;
@@ -60,13 +74,16 @@ export class ContextFile extends ModuleBuilder {
 
       // Add service getter function (v0.3.0)
       yield ``;
-      yield `export const ${getterName} = () => {`;
-      yield `  if (!currentContext) { throw new Error('${getterName} called outside of ${providerName}'); }`;
+      yield `export const ${getterName} = (config?: ${contextPropsName}) => {`;
+      yield `  const serviceConfig = config ?? getCurrentContext();`;
+      yield `  if (!serviceConfig) {`;
+      yield `    throw new Error('${getterName}: Configuration required. Either pass config parameter or wrap component in ${providerName}.');`;
+      yield `  }`;
       yield `  const ${localName}: ${this.types.type(
         interfaceName,
       )} = new ${this.client.fn(
         className,
-      )}(currentContext.fetch ?? window.fetch.bind(window), currentContext);`;
+      )}(serviceConfig.fetch ?? (typeof window !== 'undefined' ? window.fetch.bind(window) : globalThis.fetch), serviceConfig);`;
       yield `  return ${localName};`;
       yield `};`;
 
