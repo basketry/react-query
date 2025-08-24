@@ -61,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **All wrapped hook exports** are now marked as `@deprecated`
   - `use{MethodName}()` - query hooks
-  - `useSuspense{MethodName}()` - suspense query hooks  
+  - `useSuspense{MethodName}()` - suspense query hooks
   - `useInfinite{MethodName}()` - infinite query hooks
   - `useSuspenseInfinite{MethodName}()` - suspense infinite query hooks
   - Hooks remain functional for backward compatibility but display deprecation warnings

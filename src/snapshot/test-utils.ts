@@ -11,19 +11,17 @@ export async function* generateFiles(): AsyncIterable<File> {
 
   const options: NamespacedReactQueryOptions = {};
 
-  const parser = require('@basketry/ir');
-
   const { engines } = await NodeEngine.load({
     sourcePath: 'source/path.ext',
     sourceContent: JSON.stringify(service),
-    parser: parser.parse,
+    parser: (x) => ({ service: JSON.parse(x), violations: [] }),
     generators: [generateHooks],
     options,
   });
 
   for (const engine of engines) {
-    engine.runParser();
-    engine.runGenerators();
+    await engine.runParser();
+    await engine.runGenerators();
 
     for (const file of engine.files) {
       if (file.path[0] !== '.gitattributes') {

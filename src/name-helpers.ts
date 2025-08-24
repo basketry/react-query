@@ -51,7 +51,8 @@ export function buildHookName(
   ) {
     // Query Hook
     return camel(
-      `use_${options?.suspense ? 'suspense_' : ''}${options?.infinite ? 'infinite_' : ''
+      `use_${options?.suspense ? 'suspense_' : ''}${
+        options?.infinite ? 'infinite_' : ''
       }${name.slice(3)}`,
     );
   }
