@@ -118,6 +118,14 @@ export class RuntimeFile extends ModuleBuilder {
         ) as any;
 
         return Object.keys(result).length ? result : undefined;
-      }`;
+      }
+      
+      export function isError(result: { errors: { status?: number | string }[]; data?: any; }): boolean {
+        return !!result.errors.length &&
+        (Array.isArray(result.data)
+          ? result.data.length === 0
+          : result.data === undefined);
+      }
+      `;
   }
 }
