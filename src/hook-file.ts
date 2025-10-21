@@ -78,6 +78,7 @@ export class HookFile extends ModuleBuilder {
     const PageParam = () => this.runtime.type('PageParam');
     const QueryError = () => this.runtime.type('QueryError');
     const assert = () => this.runtime.fn('assert');
+    const isError = () => this.runtime.fn('isError');
 
     const type = (t: string) => this.types.type(t);
 
@@ -156,7 +157,7 @@ export class HookFile extends ModuleBuilder {
         yield `      const res = await ${guard()}(${serviceName}.${camel(
           method.name.value,
         )}(${paramsCallsite}));`;
-        yield `      if (res.errors.length) {`;
+        yield `      if (${isError()}(res)) {`;
         yield `        const handled: ${QueryError()}<${type(
           'Error',
         )}[]> = { kind: 'handled', payload: res.errors };`;
@@ -207,7 +208,7 @@ export class HookFile extends ModuleBuilder {
         })},`;
         yield `    queryFn: async ({ pageParam }: ${PageParam()}) => {`;
         yield `      const res = await ${guard()}(${methodExpression}(${paramsCallsite}));`;
-        yield `      if (res.errors.length) {`;
+        yield `      if (${isError()}(res)) {`;
         yield `        const handled: ${QueryError()}<${type(
           'Error',
         )}[]> = { kind: 'handled', payload: res.errors };`;
@@ -364,6 +365,7 @@ export class HookFile extends ModuleBuilder {
     const queryOptions = this.buildQueryOptions(method);
     const QueryError = () => this.runtime.type('QueryError');
     const assert = () => this.runtime.fn('assert');
+    const isError = () => this.runtime.fn('isError');
     const type = (t: string) => this.types.type(t);
 
     const serviceName = camel(`${this.int.name.value}_service`);
@@ -392,7 +394,7 @@ export class HookFile extends ModuleBuilder {
     yield `      const res = await ${guard()}(${serviceName}.${camel(
       method.name.value,
     )}(${paramsCallsite}));`;
-    yield `      if (res.errors.length) {`;
+    yield `      if (${isError()}(res)) {`;
     yield `        const handled: ${QueryError()}<${type(
       'Error',
     )}[]> = { kind: 'handled', payload: res.errors };`;
